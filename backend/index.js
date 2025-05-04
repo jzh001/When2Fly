@@ -1,6 +1,17 @@
 const express = require("express");
 const app = express();
 const port = 3000;
+const cors = require("cors");
+const flightRoutes = require("./routes/flights");
+
+app.use(express.json()); // ✅ Add this to parse JSON from frontend
+
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
+
+console.log("Flights route is active.");
+app.use("/flights", flightRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
