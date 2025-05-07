@@ -4,7 +4,7 @@ const port = 3000;
 const cors = require("cors");
 const flightRoutes = require("./routes/flights");
 
-app.use(express.json()); // ✅ Add this to parse JSON from frontend
+app.use(express.json());
 
 app.use(cors({
   origin: "http://localhost:5173"
