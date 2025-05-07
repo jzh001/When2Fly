@@ -43,7 +43,7 @@ const getFlightById = async (req, res) => {
 
 // Create a new flight
 const createFlight = async (req, res) => {
-  const { name, time } = req.body;
+  const { name, time, userId} = req.body;
   if (!name || !time) {
     return res.status(400).json({ message: "Name and time are required" });
   }
@@ -51,7 +51,7 @@ const createFlight = async (req, res) => {
   try {
     const { data, error } = await db
       .from('flights')
-      .insert([{ name, time }])
+      .insert([{ name, time, userId}])
       .select();
 
     if (error) throw error;
