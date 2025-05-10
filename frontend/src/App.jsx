@@ -1,5 +1,5 @@
 import "./App.css";
-import LoginButton from "./loginButton";
+import LoginButton from "./components/loginButton";
 
 function App() {
   // src/App.jsx
