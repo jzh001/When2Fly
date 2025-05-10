@@ -13,19 +13,17 @@ function Callback() {
 
       if (authCode) {
         try {
-          console.log(authCode);
-          // Send the code to your backend for token exchange
-          // const response = await axios.post(
-          //   "http://localhost:3000/api/auth/google",
-          //   {
-          //     code: authCode,
-          //     redirectUri: "http://localhost:5173/callback",
-          //   }
-          // );
+          const response = await axios.post(
+            "http://localhost:3000/auth/google",
+            {
+              code: authCode,
+              redirectUri: "http://localhost:5173/callback",
+            }
+          );
 
-          // // Store the token and user info (e.g., in localStorage or a global context)
-          // localStorage.setItem("token", response.data.token);
-          // localStorage.setItem("user", JSON.stringify(response.data.user));
+          // Store the token and user info (e.g., in localStorage or a global context)
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
 
           // Redirect to the main app page
           navigate("/");
@@ -35,7 +33,6 @@ function Callback() {
         }
       }
     };
-
     exchangeCodeForToken();
   }, [navigate]);
 
