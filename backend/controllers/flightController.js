@@ -1,20 +1,15 @@
-// controllers/flightController.js
-
-// Temporary in-memory flight storage
-//let flights = [
-//  { id: 1, name: "Flight A", time: "10:00 AM" },
-//{ id: 2, name: "Flight B", time: "3:30 PM" }
-//];
 const flights = require("../data/flightsData");
 const db = require("../db");
-// Get all flights
+
+// Get all flights for the authenticated user
 const getAllFlights = async (req, res) => {
-  // res.json(flights);
   try {
     const { data, error } = await db
-      .from('flights')
-      .select('*')
-    console.log("Data fetched from Supabase:", data);
+      .from("flights")
+      .select("*")
+      .eq("userId", req.user.id); // Filter by authenticated user's ID
+
+    if (error) throw error;
     res.json(data);
   } catch (error) {
     console.error("Error fetching flights:", error);
@@ -22,13 +17,14 @@ const getAllFlights = async (req, res) => {
   }
 };
 
-// Get a single flight by ID
+// Get a single flight by ID for the authenticated user
 const getFlightById = async (req, res) => {
   try {
     const { data, error } = await db
-      .from('flights')
-      .select('*')
-      .eq('id', req.params.id)
+      .from("flights")
+      .select("*")
+      .eq("id", req.params.id)
+      .eq("userId", req.user.id) // Ensure the flight belongs to the authenticated user
       .single();
 
     if (error || !data) {
@@ -41,17 +37,17 @@ const getFlightById = async (req, res) => {
   }
 };
 
-// Create a new flight
+// Create a new flight for the authenticated user
 const createFlight = async (req, res) => {
-  const { name, time, userId} = req.body;
+  const { name, time } = req.body;
   if (!name || !time) {
     return res.status(400).json({ message: "Name and time are required" });
   }
 
   try {
     const { data, error } = await db
-      .from('flights')
-      .insert([{ name, time, userId}])
+      .from("flights")
+      .insert([{ name, time, userId: req.user.id }]) // Use userId from the authenticated user
       .select();
 
     if (error) throw error;
@@ -62,14 +58,15 @@ const createFlight = async (req, res) => {
   }
 };
 
-// Update an existing flight
+// Update an existing flight for the authenticated user
 const updateFlight = async (req, res) => {
   const { name, time } = req.body;
   try {
     const { data, error } = await db
-      .from('flights')
+      .from("flights")
       .update({ name, time })
-      .eq('id', req.params.id)
+      .eq("id", req.params.id)
+      .eq("userId", req.user.id) // Ensure the flight belongs to the authenticated user
       .select();
 
     if (error || !data || data.length === 0) {
@@ -82,13 +79,14 @@ const updateFlight = async (req, res) => {
   }
 };
 
-// Delete a flight
+// Delete a flight for the authenticated user
 const deleteFlight = async (req, res) => {
   try {
     const { error } = await db
-      .from('flights')
+      .from("flights")
       .delete()
-      .eq('id', req.params.id);
+      .eq("id", req.params.id)
+      .eq("userId", req.user.id); // Ensure the flight belongs to the authenticated user
 
     if (error) throw error;
     res.status(204).send();
@@ -104,5 +102,5 @@ module.exports = {
   getFlightById,
   createFlight,
   updateFlight,
-  deleteFlight
+  deleteFlight,
 };
