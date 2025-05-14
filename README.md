@@ -17,6 +17,14 @@ Full Stack Web Development Final Project for CS 35L Software Construction
 
 The server should now be running on http://localhost:3000
 
+## Testing Instructions for Backend
+
+To test the routes and authentication (to ensure `.env` is correctly set up), run the following:
+```
+npm install
+npx jest
+```
+
 # Setup Instructions for React Frontend
 1. Navigate to the frontend directory:
     ```bash
