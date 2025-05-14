@@ -5,7 +5,8 @@ function App() {
   // src/App.jsx
   return (
     <>
-      <LoginButton />
+      <Home />
+      
     </>
   );
 }

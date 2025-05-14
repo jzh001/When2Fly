@@ -11,7 +11,10 @@ function LoginButton() {
 
   return (
     <>
-      <button onClick={handleGoogleLogin}>Login with Google</button>
+      <button className="login-button" onClick={handleGoogleLogin}>
+      <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo" />
+        Login with Google
+      </button>
     </>
   );
 }
