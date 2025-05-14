@@ -37,6 +37,42 @@ const getFlightById = async (req, res) => {
   }
 };
 
+// Get flights within interval hours of queried time
+const getFlightsInTimeRange = async (req, res) => {
+  const { time, interval } = req.query;
+  if (!time || !interval) {
+    return res.status(400).json({ message: "Time and interval are required" });
+  }
+
+  try {
+    const queryTime = new Date(time); // Input time
+    const minTime = new Date(queryTime.getTime() - interval * 60 * 60 * 1000); // Subtract interval
+    const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000); // Add interval
+
+    console.log("Query time:", queryTime.toISOString());
+    console.log("Min time:", minTime.toISOString());
+    console.log("Max time:", maxTime.toISOString());
+
+    const { data, error } = await db
+      .from("flights")
+      .select("*")
+      .eq("userId", req.user.id)
+      .gte("time", minTime.toISOString())
+      .lte("time", maxTime.toISOString());
+
+    if (error) {
+      console.error("Database error:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    console.log("Database result:", data);
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching flights in time range:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // Create a new flight for the authenticated user
 const createFlight = async (req, res) => {
   const { name, time } = req.body;
@@ -103,4 +139,5 @@ module.exports = {
   createFlight,
   updateFlight,
   deleteFlight,
+  getFlightsInTimeRange,
 };
