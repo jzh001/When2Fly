@@ -110,3 +110,40 @@ describe("Flight Controller Endpoints", () => {
         expect(res.body).toEqual({}); // Expect an empty response body
     });
 });
+
+// Test: Get flights within a specific time range
+it("should fetch flights within a specific time range for the logged-in user", async () => {
+    // Create multiple flights
+    const flights = [
+        { name: "Flight 1", time: "2025-05-13T10:00:00Z" },
+        { name: "Flight 2", time: "2025-05-13T12:00:00Z" },
+        { name: "Flight 3", time: "2025-05-13T14:00:00Z" },
+    ];
+
+    for (const flight of flights) {
+        const res = await request(app)
+            .post("/flights")
+            .set("Authorization", `Bearer ${token}`)
+            .send(flight);
+
+        expect(res.statusCode).toBe(201); // Ensure flights are created successfully
+    }
+
+    // Query flights within a 2-hour interval around "2025-05-13T12:00:00Z"
+    const query = {
+        time: "2025-05-13T12:00:00Z",
+        interval: 2, // 2 hours before and after
+    };
+
+    const res = await request(app)
+        .get(`/flights/queryTime?time=${query.time}&interval=${query.interval}`)
+        .set("Authorization", `Bearer ${token}`);
+
+    console.log("Response body:", res.body); // Log the response body for debugging
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(3); // All 3 flights should match the filter
+    expect(res.body.map(f => f.name)).toEqual(
+        expect.arrayContaining(["Flight 1", "Flight 2", "Flight 3"])
+    );
+});
