@@ -49,9 +49,9 @@ const getFlightsInTimeRange = async (req, res) => {
     const minTime = new Date(queryTime.getTime() - interval * 60 * 60 * 1000); // Subtract interval
     const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000); // Add interval
 
-    console.log("Query time:", queryTime.toISOString());
-    console.log("Min time:", minTime.toISOString());
-    console.log("Max time:", maxTime.toISOString());
+    // console.log("Query time:", queryTime.toISOString());
+    // console.log("Min time:", minTime.toISOString());
+    // console.log("Max time:", maxTime.toISOString());
 
     const { data, error } = await db
       .from("flights")
@@ -65,7 +65,7 @@ const getFlightsInTimeRange = async (req, res) => {
       return res.status(500).json({ error: "Internal Server Error" });
     }
 
-    console.log("Database result:", data);
+    // console.log("Database result:", data);
     res.json(data);
   } catch (error) {
     console.error("Error fetching flights in time range:", error);
