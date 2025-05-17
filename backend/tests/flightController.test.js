@@ -168,5 +168,50 @@ describe("Flight Controller Endpoints", () => {
             console.error('Cleanup failed:', error);
         }
     });
+
+    // Test: Get flights by user ID
+    it("should fetch all flights for a specific user", async () => {
+        // First create some test flights for the user
+        const testFlights = [
+            { name: "User Flight 1", time: "2025-05-14T10:00:00Z" },
+            { name: "User Flight 2", time: "2025-05-14T11:00:00Z" }
+        ];
+
+        // Create the test flights
+        for (const flight of testFlights) {
+            const res = await request(app)
+                .post("/flights")
+                .set("Authorization", `Bearer ${token}`)
+                .send(flight);
+            expect(res.statusCode).toBe(201);
+        }
+
+        // Test getting flights for this user
+        const res = await request(app)
+            .get(`/flights/user/${userId}`)
+            .set("Authorization", `Bearer ${token}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body.length).toBeGreaterThanOrEqual(2);
+        expect(res.body.every(f => String(f.userId) === String(userId))).toBe(true);
+
+        // Clean up test flights
+        try {
+            const allFlights = await request(app)
+                .get("/flights")
+                .set("Authorization", `Bearer ${token}`);
+
+            for (const flight of allFlights.body) {
+                if (flight.name.includes("User Flight")) {
+                    await request(app)
+                        .delete(`/flights/${flight.id}`)
+                        .set("Authorization", `Bearer ${token}`);
+                }
+            }
+        } catch (error) {
+            console.error('Cleanup failed:', error);
+        }
+    });
 });
 

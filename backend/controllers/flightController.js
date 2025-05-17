@@ -132,6 +132,24 @@ const deleteFlight = async (req, res) => {
   }
 };
 
+// Get all flights for a specific user
+const getFlightsByUser = async (req, res) => {
+  const userId = req.params.userId;
+  
+  try {
+    const { data, error } = await db
+      .from("flights")
+      .select("*")
+      .eq("userId", userId);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching user flights:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // Export controller functions
 module.exports = {
   getAllFlights,
@@ -140,4 +158,5 @@ module.exports = {
   updateFlight,
   deleteFlight,
   getFlightsInTimeRange,
+  getFlightsByUser
 };
