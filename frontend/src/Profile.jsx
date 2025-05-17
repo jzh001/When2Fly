@@ -1,4 +1,5 @@
 import {useState, useEffect} from "react";
+import axios from "axios";
 
 
 function Profile() {
@@ -59,11 +60,12 @@ function Profile() {
             if (!token) throw new Error("No token found");
             
             const response = await axios.put(
-                "https://localhost:3000/user", accData,
+                "http://localhost:3000/user",
+                accData,
                 {headers: {Authorization: `Bearer ${token}`}}
             );
             setUser(response.data);
-            localStorage.setItem("user", JSON.stringify(accData));        
+            localStorage.setItem("user", JSON.stringify(response.data));        
             setEditing(false);
         }
         catch (error) {
