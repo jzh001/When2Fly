@@ -4,8 +4,12 @@ const port = 3000;
 const cors = require("cors");
 const flightRoutes = require("./routes/flights");
 const { handleGoogleTokenExchange } = require("./controllers/authController");
+const notificationRoutes = require("./routes/notifications");
+const userRoutes = require("./routes/users"); // <-- Add this
 
 app.use(express.json());
+app.use("/notifications", notificationRoutes);
+app.use("/users", userRoutes); // <-- And this
 
 app.use(
   cors({

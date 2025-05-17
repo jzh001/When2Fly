@@ -81,13 +81,49 @@ const createFlight = async (req, res) => {
   }
 
   try {
+    // 1. Insert the new flight
     const { data, error } = await db
       .from("flights")
-      .insert([{ name, time, userId: req.user.id }]) // Use userId from the authenticated user
+      .insert([{ name, time, userId: req.user.id }])
       .select();
 
     if (error) throw error;
-    res.status(201).json(data[0]);
+    const newFlight = data[0];
+
+    // 2. Find all users with a flight within 2 hours of the new flight's time (excluding the creator)
+    const flightTime = new Date(time);
+    const minTime = new Date(flightTime.getTime() - 2 * 60 * 60 * 1000).toISOString();
+    const maxTime = new Date(flightTime.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
+    const { data: nearbyFlights, error: nearbyError } = await db
+      .from("flights")
+      .select("userId")
+      .neq("userId", req.user.id)
+      .gte("time", minTime)
+      .lte("time", maxTime);
+
+    if (nearbyError) throw nearbyError;
+
+    // Get unique userIds
+    const userIds = [...new Set(nearbyFlights.map(f => f.userId))];
+
+    // 3. Insert a notification for each user
+    const notifications = userIds.map(userId => ({
+      google_id: userId,
+      message: `A new flight "${name}" was added within 2 hours of your flight.`,
+      isRead: false,
+      created_at: new Date().toISOString()
+    }));
+
+    if (notifications.length > 0) {
+      const { error: notifError } = await db
+        .from("notifications")
+        .insert(notifications);
+
+      if (notifError) throw notifError;
+    }
+
+    res.status(201).json(newFlight);
   } catch (error) {
     console.error("Error creating flight:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -132,6 +168,24 @@ const deleteFlight = async (req, res) => {
   }
 };
 
+// Get all flights for a specific user
+const getFlightsByUser = async (req, res) => {
+  const userId = req.params.userId;
+  
+  try {
+    const { data, error } = await db
+      .from("flights")
+      .select("*")
+      .eq("userId", userId);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching user flights:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // Export controller functions
 module.exports = {
   getAllFlights,
@@ -140,4 +194,5 @@ module.exports = {
   updateFlight,
   deleteFlight,
   getFlightsInTimeRange,
+  getFlightsByUser
 };
