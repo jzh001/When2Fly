@@ -1,13 +1,20 @@
 import "./App.css";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginButton from "./components/loginButton";
 import Home from './Home.jsx'
+import Callback from "./Callback";
+import Profile from './Profile.jsx'
 function App() {
   // src/App.jsx
   return (
-    <>
-      <Home />
-      
-    </>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/Profile" element={<Profile />} />
+        <Route path="/callback" element={<Callback />} />
+        <Route path="*" element={<div>404 Not Found</div>} />
+      </Routes>
+    </Router>
   );
 }
 
