@@ -7,6 +7,7 @@ describe("User Controller Endpoints", () => {
     let server;
     let testUser;
     let token;
+    let currentName = "Old Name";
 
     beforeAll(async () => {
         server = app.listen(4020);
@@ -14,7 +15,7 @@ describe("User Controller Endpoints", () => {
         await new Promise(res => setTimeout(res, 200));
         // Create a test user in the database
         const { data } = await db.from("users").insert([
-            { google_id: "test-google-id", name: "Old Name", email: "testuser@example.com" }
+            { google_id: "test-google-id", name: currentName, email: "testuser@example.com" }
         ]).select();
         testUser = data[0];
         token = jwt.sign({ id: testUser.google_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -34,6 +35,8 @@ describe("User Controller Endpoints", () => {
         expect(res.statusCode).toBe(200);
         expect(res.body.success).toBe(true);
         expect(res.body.data.name).toBe("New Name");
+
+        currentName = "New Name"; // Track the latest name
 
         // Confirm in DB
         const { data: updatedArr } = await db.from("users").select("*").eq("google_id", testUser.google_id);
@@ -62,6 +65,24 @@ describe("User Controller Endpoints", () => {
         const res = await request(app)
             .put("/users/update-name")
             .send({ userId: testUser.google_id, newName: "No Auth" });
+
+        expect(res.statusCode).toBe(401);
+    });
+
+    it("should return the current user's info when authenticated", async () => {
+        const res = await request(app)
+            .get("/users")
+            .set("Authorization", `Bearer ${token}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body).toHaveProperty("google_id", testUser.google_id);
+        expect(res.body).toHaveProperty("name", currentName); // Use currentName here
+        expect(res.body).toHaveProperty("email", testUser.email);
+    });
+
+    it("should return 401 if no token is provided for getCurrentUser", async () => {
+        const res = await request(app)
+            .get("/users");
 
         expect(res.statusCode).toBe(401);
     });

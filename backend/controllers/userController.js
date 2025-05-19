@@ -41,6 +41,26 @@ const updateUserName = async (req, res) => {
     }
 };
 
+const getCurrentUser = async (req, res) => {
+  try {
+    const userId = req.user.userId || req.user.id || req.user.google_id;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" });
+
+    const { data, error } = await db
+      .from("users")
+      .select("google_id, name, email")
+      .eq("google_id", userId)
+      .single();
+
+    if (error || !data) return res.status(404).json({ error: "User not found" });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
-    updateUserName
+    updateUserName,
+    getCurrentUser
 };
