@@ -7,15 +7,16 @@ const { handleGoogleTokenExchange } = require("./controllers/authController");
 const notificationRoutes = require("./routes/notifications");
 const userRoutes = require("./routes/users"); // <-- Add this
 
-app.use(express.json());
-app.use("/notifications", notificationRoutes);
-app.use("/users", userRoutes); // <-- And this
-
 app.use(
   cors({
     origin: "http://localhost:5173",
+    credentials: true,
   })
 );
+
+app.use(express.json());
+app.use("/notifications", notificationRoutes);
+app.use("/users", userRoutes); // <-- And this
 
 console.log("Flights route is active.");
 app.use("/flights", flightRoutes);
