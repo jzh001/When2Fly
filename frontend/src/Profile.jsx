@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [accData, setAccData] = useState({ name: "", email: "" });
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const navigate = useNavigate();
 
   // Get token from localStorage (adjust if you store it elsewhere)
   const token = localStorage.getItem("token");
@@ -76,6 +78,8 @@ const Profile = () => {
       ) : (
         <button onClick={() => setEditMode(true)}>Edit Name</button>
       )}
+      <br />
+      <button onClick={() => navigate("/")}>Back to Home</button>
     </div>
   );
 };
