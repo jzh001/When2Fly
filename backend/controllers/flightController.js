@@ -37,6 +37,42 @@ const getFlightById = async (req, res) => {
   }
 };
 
+// Get flights within interval hours of queried time
+const getFlightsInTimeRange = async (req, res) => {
+  const { time, interval } = req.query;
+  if (!time || !interval) {
+    return res.status(400).json({ message: "Time and interval are required" });
+  }
+
+  try {
+    const queryTime = new Date(time); // Input time
+    const minTime = new Date(queryTime.getTime() - interval * 60 * 60 * 1000); // Subtract interval
+    const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000); // Add interval
+
+    // console.log("Query time:", queryTime.toISOString());
+    // console.log("Min time:", minTime.toISOString());
+    // console.log("Max time:", maxTime.toISOString());
+
+    const { data, error } = await db
+      .from("flights")
+      .select("*")
+      .eq("userId", req.user.id)
+      .gte("time", minTime.toISOString())
+      .lte("time", maxTime.toISOString());
+
+    if (error) {
+      console.error("Database error:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    // console.log("Database result:", data);
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching flights in time range:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // Create a new flight for the authenticated user
 const createFlight = async (req, res) => {
   const { name, time } = req.body;
@@ -45,13 +81,49 @@ const createFlight = async (req, res) => {
   }
 
   try {
+    // 1. Insert the new flight
     const { data, error } = await db
       .from("flights")
-      .insert([{ name, time, userId: req.user.id }]) // Use userId from the authenticated user
+      .insert([{ name, time, userId: req.user.id }])
       .select();
 
     if (error) throw error;
-    res.status(201).json(data[0]);
+    const newFlight = data[0];
+
+    // 2. Find all users with a flight within 2 hours of the new flight's time (excluding the creator)
+    const flightTime = new Date(time);
+    const minTime = new Date(flightTime.getTime() - 2 * 60 * 60 * 1000).toISOString();
+    const maxTime = new Date(flightTime.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
+    const { data: nearbyFlights, error: nearbyError } = await db
+      .from("flights")
+      .select("userId")
+      .neq("userId", req.user.id)
+      .gte("time", minTime)
+      .lte("time", maxTime);
+
+    if (nearbyError) throw nearbyError;
+
+    // Get unique userIds
+    const userIds = [...new Set(nearbyFlights.map(f => f.userId))];
+
+    // 3. Insert a notification for each user
+    const notifications = userIds.map(userId => ({
+      google_id: userId,
+      message: `A new flight "${name}" was added within 2 hours of your flight.`,
+      isRead: false,
+      created_at: new Date().toISOString()
+    }));
+
+    if (notifications.length > 0) {
+      const { error: notifError } = await db
+        .from("notifications")
+        .insert(notifications);
+
+      if (notifError) throw notifError;
+    }
+
+    res.status(201).json(newFlight);
   } catch (error) {
     console.error("Error creating flight:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -96,6 +168,24 @@ const deleteFlight = async (req, res) => {
   }
 };
 
+// Get all flights for a specific user
+const getFlightsByUser = async (req, res) => {
+  const userId = req.params.userId;
+  
+  try {
+    const { data, error } = await db
+      .from("flights")
+      .select("*")
+      .eq("userId", userId);
+
+    if (error) throw error;
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching user flights:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 // Export controller functions
 module.exports = {
   getAllFlights,
@@ -103,4 +193,6 @@ module.exports = {
   createFlight,
   updateFlight,
   deleteFlight,
+  getFlightsInTimeRange,
+  getFlightsByUser
 };
