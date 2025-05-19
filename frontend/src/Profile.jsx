@@ -1,123 +1,83 @@
-import {useState, useEffect} from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+const Profile = () => {
+  const [user, setUser] = useState(null);
+  const [accData, setAccData] = useState({ name: "", email: "" });
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
 
-function Profile() {
+  // Get token from localStorage (adjust if you store it elsewhere)
+  const token = localStorage.getItem("token");
 
-    const [user, setUser] = useState(null); // user info
-    const [loading, setLoading] = useState(true); // Loading state
-    const [accData, setAccData] = useState({name: "", email: ""});
-    const [editing, setEditing] = useState(false);
-
-    useEffect(() => {
-
-        async function fetchUser() {
-            try {
-                const token = localStorage.getItem("token");
-                console.log("Token:", token);
-                if (token) {
-                    const response = await axios.get("http://localhost:3000/user", {
-                        headers: {Authorization: `Bearer ${token}`}
-                    });
-                    setUser(response.data);
-                    setAccData(response.data);
-                    setLoading(false);
-                }
-                // if timed out, use fake user
-                else {
-                    setTimeout(() => {
-                        const fakeUser = {
-                            name: "Joe Bruin",
-                            email: "joebruin@ucla.edu",
-                        };
-                    setUser(fakeUser);
-                    setAccData(fakeUser);
-                    setLoading(false);
-                    }, 1000);   // Wait 1 second
-                    return;
-                }
-            }
-            catch (error) {
-                console.error("Failed to load user data", error);
-                alert("CRITICAL ERROR WHAT ARE YOU DOING")
-                return;
-            }
-        }
-
-        fetchUser();
-    }, []);
-
-    if (loading) return <p>Loading profile...</p>;
-
-    function cancelChanges() {
-        setAccData(user);
-        setEditing(false);
-    }
-
-    async function saveChanges() {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("No token found");
-            
-            const response = await axios.put(
-                "http://localhost:3000/user",
-                accData,
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
-            setUser(response.data);
-            localStorage.setItem("user", JSON.stringify(response.data));        
-            setEditing(false);
-        }
-        catch (error) {
-            console.error("Failed to save changes", error);
-            alert("CRITICAL ERROR WHAT ARE YOU DOING")
-        }
-        
-    }
-
-    function handleChange(event) {
-        setAccData({
-            ...accData, // everything else unchanged
-            [event.target.name]: event.target.value // update field
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/users", {
+          headers: { Authorization: `Bearer ${token}` },
         });
+        setUser(response.data);
+        setAccData({ name: response.data.name, email: response.data.email });
+      } catch (error) {
+        alert("Failed to load user profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, [token]);
+
+  const handleChange = (e) => {
+    setAccData({ ...accData, [e.target.name]: e.target.value });
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await axios.put(
+        "http://localhost:3000/users/update-name",
+        { userId: user.google_id, newName: accData.name },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUser({ ...user, name: accData.name });
+      setEditMode(false);
+      alert("Profile updated!");
+    } catch (error) {
+      alert("Failed to update profile.");
     }
+  };
 
-    return (
-        <div className="profile">
-        <h1>My Profile</h1>
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>No user data found.</div>;
 
-        {editing ? (
-            <>
-            <label>
-                Name:{" "}
-                <input
-                name="name"
-                value={accData.name}
-                onChange={handleChange}
-                />
-            </label>
-            <br />
-            <label>
-                Email:{" "}
-                <input
-                name="email"
-                value={accData.email}
-                onChange={handleChange}
-                />
-            </label>
-            <br />
-            <button onClick={saveChanges}>Save</button>
-            <button onClick={cancelChanges}>Cancel</button>
-            </>
+  return (
+    <div>
+      <h2>Profile</h2>
+      <div>
+        <label>Name: </label>
+        {editMode ? (
+          <input
+            name="name"
+            value={accData.name}
+            onChange={handleChange}
+          />
         ) : (
-            <>
-            <p>Name: {user.name}</p>
-            <p>Email: {user.email}</p>
-            <button onClick={() => setEditing(true)}>Edit</button>
-            </>
+          <span>{user.name}</span>
         )}
-        </div>
-    );
-  }
-  
-  export default Profile;
+      </div>
+      <div>
+        <label>Email: </label>
+        <span>{user.email}</span>
+      </div>
+      {editMode ? (
+        <>
+          <button onClick={handleSave}>Save</button>
+          <button onClick={() => setEditMode(false)}>Cancel</button>
+        </>
+      ) : (
+        <button onClick={() => setEditMode(true)}>Edit Name</button>
+      )}
+    </div>
+  );
+};
+
+export default Profile;
