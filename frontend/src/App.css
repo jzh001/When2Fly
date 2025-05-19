@@ -6,6 +6,7 @@
 }
 
 body {
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
   background-color: #e6f0fa;
@@ -44,7 +45,7 @@ body {
 }
 
 .airplane-wrapper {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   pointer-events: none;
@@ -55,7 +56,7 @@ body {
 
 .airplane {
   position: absolute;
-  top: 40%;
+  
   left: -200px;
   width: 80px;
   height: auto;
@@ -63,7 +64,7 @@ body {
 }
 
 .airplane.delay {
-  top: 60%;
+  
   animation-delay: 5s;
 }
 
