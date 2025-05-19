@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import LoginButton from "./components/loginButton";
 function Home() {
     return (
@@ -5,7 +6,11 @@ function Home() {
         <div className="home">
           <h1>When2Fly</h1>
           <LoginButton />
-        
+        </div>
+        <div style={{marginTop: "50px"}}>
+          <Link to="/Profile">
+            <button>Profile Page</button>
+          </Link>
         </div>
 
         <div className="airplane-wrapper">
