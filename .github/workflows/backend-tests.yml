@@ -37,6 +37,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Fail if .env or secret files are present
+        run: |
+          if git ls-files | grep -E '\.env|\.env\.local|\.env\.production|\.env\.development'; then
+            echo "❌ .env or secret environment files are present in the repository!"
+            exit 1
+          else
+            echo "✅ No .env or secret files found."
+          fi
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
