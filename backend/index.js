@@ -3,7 +3,10 @@ const app = express();
 const port = 3000;
 const cors = require("cors");
 const flightRoutes = require("./routes/flights");
-const { handleGoogleTokenExchange } = require("./controllers/authController");
+const {
+  handleGoogleTokenExchange,
+  validateToken,
+} = require("./controllers/authController");
 const notificationRoutes = require("./routes/notifications");
 const userRoutes = require("./routes/users"); // <-- Add this
 
@@ -22,6 +25,7 @@ console.log("Flights route is active.");
 app.use("/flights", flightRoutes);
 
 app.post("/auth/google", handleGoogleTokenExchange);
+app.get("/auth/verify", validateToken);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
