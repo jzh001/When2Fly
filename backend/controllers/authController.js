@@ -59,10 +59,17 @@ const validateToken = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log(decoded);
-    res.json({ user: { id: decoded.userId } });
+    const { data, error } = await db
+      .from("users")
+      .select("google_id, name, email")
+      .eq("google_id", decoded.userId)
+      .single();
+
+    if (error || !data)
+      return res.status(404).json({ error: "User not found" });
+    res.json(data);
   } catch (err) {
-    res.status(401).json({ error: "Invalid token" });
+    res.status(401).json({ error: "Invalid token/Invalid user" });
   }
 };
 
