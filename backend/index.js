@@ -9,7 +9,10 @@ const userRoutes = require("./routes/users"); // <-- Add this
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://when2-fly.vercel.app/"
+    ],
     credentials: true,
   })
 );
