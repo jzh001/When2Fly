@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [accData, setAccData] = useState({ name: "", email: "" });
@@ -15,7 +17,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get("http://localhost:3000/users", {
+        const response = await axios.get(`${BACKEND_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);
@@ -36,7 +38,7 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       const response = await axios.put(
-        "http://localhost:3000/users/update-name",
+        `${BACKEND_URL}/users/update-name`,
         { userId: user.google_id, newName: accData.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
