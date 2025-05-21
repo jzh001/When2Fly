@@ -11,7 +11,7 @@ const {
 } = require("../controllers/flightController");
 const authMiddleware = require("../middleware/auth");
 
-router.use(authMiddleware); // Apply authMiddleware to all routes
+router.use(authMiddleware);
 
 router.get("/", getAllFlights);
 router.get("/queryTime", getFlightsInTimeRange);

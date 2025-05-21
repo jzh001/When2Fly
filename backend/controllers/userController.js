@@ -1,6 +1,5 @@
 const db = require("../db");
 
-// Update user's name
 const updateUserName = async (req, res) => {
     try {
         const { userId, newName } = req.body;
