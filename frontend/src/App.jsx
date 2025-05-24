@@ -1,17 +1,22 @@
-import { useState } from 'react'
+import "./App.css";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { FlightAdder } from './FlightAdder.jsx';
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import LoginButton from "./components/loginButton";
+import Home from './Home.jsx'
+import Callback from "./Callback";
+import Profile from './Profile.jsx'
 function App() {
-  const [count, setCount] = useState(0)
-
+  // src/App.jsx
   return (
-    <>
-      <FlightAdder/>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/Profile" element={<Profile />} />
+        <Route path="/callback" element={<Callback />} />
+        <Route path="*" element={<div>404 Not Found</div>} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;

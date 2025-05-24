@@ -1,14 +1,24 @@
 const express = require("express");
 const router = express.Router();
+const {
+  getAllFlights,
+  getFlightsInTimeRange,
+  getFlightsByUser,
+  getFlightById,
+  createFlight,
+  updateFlight,
+  deleteFlight,
+} = require("../controllers/flightController");
+const authMiddleware = require("../middleware/auth");
 
-// Import flight controller
-const flightController = require("../controllers/flightController.js");
+router.use(authMiddleware);
 
-// Define routes for flights
-router.get("/", flightController.getAllFlights);  // Get all flights
-router.post("/", flightController.createFlight);  // Add a new flight
-router.get("/:id", flightController.getFlightById); // Get a specific flight by ID
-router.put("/:id", flightController.updateFlight); // Update a flight
-router.delete("/:id", flightController.deleteFlight); // Delete a flight
+router.get("/", getAllFlights);
+router.get("/queryTime", getFlightsInTimeRange);
+router.get("/user/:userId", getFlightsByUser);
+router.get("/:id", getFlightById);
+router.post("/", createFlight);
+router.put("/:id", updateFlight);
+router.delete("/:id", deleteFlight);
 
 module.exports = router;
