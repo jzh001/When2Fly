@@ -79,6 +79,7 @@ const Profile = () => {
         <button onClick={() => setEditMode(true)}>Edit Name</button>
       )}
       <br />
+      <button onClick={() => navigate("/notifications")}>View Notifications</button>
       <button onClick={() => navigate("/")}>Back to Home</button>
     </div>
   );
