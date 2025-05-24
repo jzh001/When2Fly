@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import "./Profile.css";
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -52,10 +53,11 @@ const Profile = () => {
   if (!user) return <div>No user data found.</div>;
 
   return (
-    <div>
-      <h2>Profile</h2>
-      <div>
-        <label>Name: </label>
+  <div className="profile-root">
+    <h2 className="profile-header">Profile</h2>
+    <div className="profile-card">
+      <div className="profile-field">
+        <label>Name:</label>
         {editMode ? (
           <input
             name="name"
@@ -66,23 +68,28 @@ const Profile = () => {
           <span>{user.name}</span>
         )}
       </div>
-      <div>
-        <label>Email: </label>
+      <div className="profile-field">
+        <label>Email:</label>
         <span>{user.email}</span>
       </div>
+
       {editMode ? (
-        <>
-          <button onClick={handleSave}>Save</button>
-          <button onClick={() => setEditMode(false)}>Cancel</button>
-        </>
+        <div className="profile-inline-buttons">
+          <button className="profile-btn primary" onClick={handleSave}>Save</button>
+          <button className="profile-btn secondary" onClick={() => setEditMode(false)}>Cancel</button>
+        </div>
       ) : (
-        <button onClick={() => setEditMode(true)}>Edit Name</button>
+        <button className="profile-btn primary" onClick={() => setEditMode(true)}>Edit Name</button>
       )}
-      <br />
-      <button onClick={() => navigate("/notifications")}>View Notifications</button>
-      <button onClick={() => navigate("/")}>Back to Home</button>
+
+      <div className="profile-bottom-buttons">
+        <button className="profile-btn secondary" onClick={() => navigate("/notifications")}>View Notifications</button>
+        <button className="profile-btn secondary" onClick={() => navigate("/")}>Back to Home</button>
+      </div>
     </div>
+  </div>
   );
+
 };
 
 export default Profile;
