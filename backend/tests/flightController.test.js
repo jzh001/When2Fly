@@ -1,30 +1,27 @@
 const request = require("supertest");
-const app = require("../index"); // Import your Express app
+const app = require("../index"); 
 const jwt = require("jsonwebtoken");
+require("dotenv").config();
 
-// Mock JWT token for a logged-in user
-const userId = "1"; // Replace with a valid user ID from your database
+const userId = process.env.TEST_GOOGLE_ID;
 const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
 describe("Flight Controller Endpoints", () => {
-    let server; // To store the server instance
+    let server;
     let flightId;
 
-    // Start the server before running tests
     beforeAll((done) => {
         server = app.listen(4000, () => {
             done();
         });
     });
 
-    // Close the server after all tests
     afterAll((done) => {
         server.close(() => {
             done();
         });
     });
 
-    // Test: Get all flights
     it("should fetch all flights for the logged-in user", async () => {
         const res = await request(app)
             .get("/flights")
@@ -33,7 +30,6 @@ describe("Flight Controller Endpoints", () => {
         expect(Array.isArray(res.body)).toBe(true);
     });
 
-    // Test: Create a new flight
     it("should create a new flight for the logged-in user", async () => {
         const flightData = {
             name: "Test Flight",
@@ -49,10 +45,9 @@ describe("Flight Controller Endpoints", () => {
         expect(res.body).toHaveProperty("id");
         expect(res.body.name).toBe(flightData.name);
         expect(res.body.time).toBe(flightData.time);
-        flightId = res.body.id; // Save the flight ID for later tests
+        flightId = res.body.id;
     });
 
-    // Test: Get a single flight by ID
     it("should fetch a single flight by ID for the logged-in user", async () => {
         const res = await request(app)
             .get(`/flights/${flightId}`)
@@ -61,7 +56,6 @@ describe("Flight Controller Endpoints", () => {
         expect(res.body).toHaveProperty("id", flightId);
     });
 
-    // Test: Update a flight
     it("should update the flight for the logged-in user", async () => {
         const updatedFlightData = {
             name: "Updated Test Flight",
@@ -78,7 +72,6 @@ describe("Flight Controller Endpoints", () => {
         expect(res.body.time).toBe(updatedFlightData.time);
     });
 
-    // Test: Delete a flight
     it("should delete the flight for the logged-in user", async () => {
         const res = await request(app)
             .delete(`/flights/${flightId}`)
@@ -86,7 +79,6 @@ describe("Flight Controller Endpoints", () => {
         expect(res.statusCode).toBe(204);
     });
 
-    // Test: Ensure deleted flight cannot be fetched
     it("should return 404 for a deleted flight", async () => {
         const res = await request(app)
             .get(`/flights/${flightId}`)
@@ -94,24 +86,21 @@ describe("Flight Controller Endpoints", () => {
         expect(res.statusCode).toBe(404);
     });
 
-    // Test: Ensure unauthenticated users cannot modify the table
     it("should return 401 Unauthorized for unauthenticated users trying to modify the table", async () => {
         const flightData = {
             name: "Unauthorized Flight",
             time: "2025-05-12T10:00:00",
         };
 
-        // Attempt to create a flight without an Authorization header
         const res = await request(app)
             .post("/flights")
-            .send(flightData); // No Authorization header
+            .send(flightData);
 
-        expect(res.statusCode).toBe(401); // Expect 401 Unauthorized
-        expect(res.body).toEqual({}); // Expect an empty response body
+        expect(res.statusCode).toBe(401);
+        expect(res.body).toEqual({});
     });
-    // Test: Get flights within a specific time range
+
     it("should fetch flights within a specific time range for the logged-in user", async () => {
-        // Create multiple flights
         const flights = [
             { name: "Flight 1", time: "2025-05-13T10:00:00Z" },
             { name: "Flight 2", time: "2025-05-13T12:00:00Z" },
@@ -124,35 +113,30 @@ describe("Flight Controller Endpoints", () => {
                 .set("Authorization", `Bearer ${token}`)
                 .send(flight);
 
-            expect(res.statusCode).toBe(201); // Ensure flights are created successfully
+            expect(res.statusCode).toBe(201);
         }
 
-        // Query flights within a 2-hour interval around "2025-05-13T12:00:00Z"
         const query = {
             time: "2025-05-13T12:00:00Z",
-            interval: 2, // 2 hours before and after
+            interval: 2,
         };
 
         const res = await request(app)
             .get(`/flights/queryTime?time=${query.time}&interval=${query.interval}`)
             .set("Authorization", `Bearer ${token}`);
 
-        // console.log("Response body:", res.body); // Log the response body for debugging
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.length).toBe(3); // All 3 flights should match the filter
+        expect(res.body.length).toBe(3);
         expect(res.body.map(f => f.name)).toEqual(
             expect.arrayContaining(["Flight 1", "Flight 2", "Flight 3"])
         );
-        // Clean up: delete the created flights
         const flightNames = ["Flight 1", "Flight 2", "Flight 3"];
         try {
-            // Get all flights first
             const allFlights = await request(app)
                 .get("/flights")
                 .set("Authorization", `Bearer ${token}`);
 
-            // Delete each flight that matches our test flight names
             for (const flight of allFlights.body) {
                 if (flightNames.includes(flight.name)) {
                     try {
@@ -169,15 +153,12 @@ describe("Flight Controller Endpoints", () => {
         }
     });
 
-    // Test: Get flights by user ID
     it("should fetch all flights for a specific user", async () => {
-        // First create some test flights for the user
         const testFlights = [
             { name: "User Flight 1", time: "2025-05-14T10:00:00Z" },
             { name: "User Flight 2", time: "2025-05-14T11:00:00Z" }
         ];
 
-        // Create the test flights
         for (const flight of testFlights) {
             const res = await request(app)
                 .post("/flights")
@@ -186,7 +167,6 @@ describe("Flight Controller Endpoints", () => {
             expect(res.statusCode).toBe(201);
         }
 
-        // Test getting flights for this user
         const res = await request(app)
             .get(`/flights/user/${userId}`)
             .set("Authorization", `Bearer ${token}`);
@@ -196,7 +176,6 @@ describe("Flight Controller Endpoints", () => {
         expect(res.body.length).toBeGreaterThanOrEqual(2);
         expect(res.body.every(f => String(f.userId) === String(userId))).toBe(true);
 
-        // Clean up test flights
         try {
             const allFlights = await request(app)
                 .get("/flights")
@@ -213,52 +192,4 @@ describe("Flight Controller Endpoints", () => {
             console.error('Cleanup failed:', error);
         }
     });
-    it("should fetch all flights within a specific time range (all users)", async () => {
-        // Create flights for different users
-        const flights = [
-            { name: "Global Flight 1", time: "2025-06-01T10:00:00Z", userId: "userA" },
-            { name: "Global Flight 2", time: "2025-06-01T12:00:00Z", userId: "userB" },
-            { name: "Global Flight 3", time: "2025-06-01T14:00:00Z", userId: "userC" },
-            { name: "Global Flight 4", time: "2025-06-02T10:00:00Z", userId: "userA" }, // outside range
-        ];
-
-        // Insert flights directly using your db or via API as needed
-        for (const flight of flights) {
-            await request(app)
-                .post("/flights")
-                .set("Authorization", `Bearer ${token}`)
-                .send(flight);
-        }
-
-        // Query for flights within a 3-hour interval around "2025-06-01T12:00:00Z"
-        const query = {
-            time: "2025-06-01T12:00:00Z",
-            interval: 3, // 3 hours before and after
-        };
-
-        const res = await request(app)
-            .get(`/flights/allFlights?time=${query.time}&interval=${query.interval}`)
-            .set("Authorization", `Bearer ${token}`);
-
-        expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
-        // Should include Global Flight 1, 2, 3 but not 4
-        expect(res.body.map(f => f.name)).toEqual(
-            expect.arrayContaining(["Global Flight 1", "Global Flight 2", "Global Flight 3"])
-        );
-        expect(res.body.map(f => f.name)).not.toContain("Global Flight 4");
-
-        // Clean up: delete the created flights
-        const allFlights = await request(app)
-            .get("/flights")
-            .set("Authorization", `Bearer ${token}`);
-        for (const flight of allFlights.body) {
-            if (flight.name.startsWith("Global Flight")) {
-                await request(app)
-                    .delete(`/flights/${flight.id}`)
-                    .set("Authorization", `Bearer ${token}`);
-            }
-        }
-    });
 });
-

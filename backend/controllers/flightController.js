@@ -83,7 +83,7 @@ const getAllFlightsInTimeRange = async (req, res) => {
 
     const { data, error } = await db
       .from("flights")
-      .select("*")
+      .select("*, users(name)")
       .gte("time", minTime)
       .lte("time", maxTime);
 
@@ -197,7 +197,7 @@ const deleteFlight = async (req, res) => {
 // Get all flights for a specific user
 const getFlightsByUser = async (req, res) => {
   const userId = req.params.userId;
-  
+
   try {
     const { data, error } = await db
       .from("flights")

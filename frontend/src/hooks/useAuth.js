@@ -34,6 +34,6 @@ export function useAuth() {
     validateToken();
   }, [validateToken]);
 
-  console.log(user);
+  // console.log(user);
   return { user, loading, isAuthenticated: !!user };
 }
