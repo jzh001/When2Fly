@@ -86,4 +86,38 @@ describe("User Controller Endpoints", () => {
 
         expect(res.statusCode).toBe(401);
     });
+        it("should update the user's timezone", async () => {
+        const newTimezone = "Asia/Shanghai";
+        const res = await request(app)
+            .put("/users/update-timezone")
+            .set("Authorization", `Bearer ${token}`)
+            .send({ userId: testUser.google_id, timezone: newTimezone });
+
+        expect(res.statusCode).toBe(200);
+        expect(res.body.success).toBe(true);
+
+        // Confirm in DB
+        const { data: updatedArr } = await db.from("users").select("*").eq("google_id", testUser.google_id);
+        expect(updatedArr[0].timezone).toBe(newTimezone);
+
+        // Clean up: reset timezone to UTC
+        await db.from("users").update({ timezone: "UTC" }).eq("google_id", testUser.google_id);
+    });
+
+    it("should return 400 if required fields are missing for timezone update", async () => {
+        const res = await request(app)
+            .put("/users/update-timezone")
+            .set("Authorization", `Bearer ${token}`)
+            .send({ userId: testUser.google_id });
+
+        expect(res.statusCode).toBe(400);
+    });
+
+    it("should return 401 if no token is provided for timezone update", async () => {
+        const res = await request(app)
+            .put("/users/update-timezone")
+            .send({ userId: testUser.google_id, timezone: "UTC" });
+
+        expect(res.statusCode).toBe(401);
+    });
 });

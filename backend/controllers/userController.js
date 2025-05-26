@@ -59,7 +59,17 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+const updateUserTimezone = async (req, res) => {
+    const { userId, timezone } = req.body;
+    if (!userId || !timezone) return res.status(400).json({ message: "Missing fields" });
+    const { error } = await db.from("users").update({ timezone }).eq("google_id", userId);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+};
+
+
 module.exports = {
     updateUserName,
-    getCurrentUser
+    getCurrentUser,
+    updateUserTimezone,
 };
