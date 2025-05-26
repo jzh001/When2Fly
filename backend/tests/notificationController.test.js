@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const db = require("../db");
 
 const userId = "test-notif-user";
-const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
 describe("Notification Controller Endpoints", () => {
     let server;

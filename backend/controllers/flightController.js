@@ -7,7 +7,7 @@ const getAllFlights = async (req, res) => {
     const { data, error } = await db
       .from("flights")
       .select("*")
-      .eq("userId", req.user.id); // Filter by authenticated user's ID
+      .eq("userId", req.user.userId); // Filter by authenticated user's ID
 
     if (error) throw error;
     res.json(data);
@@ -24,7 +24,7 @@ const getFlightById = async (req, res) => {
       .from("flights")
       .select("*")
       .eq("id", req.params.id)
-      .eq("userId", req.user.id) // Ensure the flight belongs to the authenticated user
+      .eq("userId", req.user.userId) // Ensure the flight belongs to the authenticated user
       .single();
 
     if (error || !data) {
@@ -56,7 +56,7 @@ const getFlightsInTimeRange = async (req, res) => {
     const { data, error } = await db
       .from("flights")
       .select("*")
-      .eq("userId", req.user.id)
+      .eq("userId", req.user.userId)
       .gte("time", minTime.toISOString())
       .lte("time", maxTime.toISOString());
 
@@ -84,7 +84,7 @@ const createFlight = async (req, res) => {
     // 1. Insert the new flight
     const { data, error } = await db
       .from("flights")
-      .insert([{ name, time, userId: req.user.id }])
+      .insert([{ name, time, userId: req.user.userId }])
       .select();
 
     if (error) throw error;
@@ -98,7 +98,7 @@ const createFlight = async (req, res) => {
     const { data: nearbyFlights, error: nearbyError } = await db
       .from("flights")
       .select("userId")
-      .neq("userId", req.user.id)
+      .neq("userId", req.user.userId)
       .gte("time", minTime)
       .lte("time", maxTime);
 
@@ -138,7 +138,7 @@ const updateFlight = async (req, res) => {
       .from("flights")
       .update({ name, time })
       .eq("id", req.params.id)
-      .eq("userId", req.user.id) // Ensure the flight belongs to the authenticated user
+      .eq("userId", req.user.userId) // Ensure the flight belongs to the authenticated user
       .select();
 
     if (error || !data || data.length === 0) {
@@ -158,7 +158,7 @@ const deleteFlight = async (req, res) => {
       .from("flights")
       .delete()
       .eq("id", req.params.id)
-      .eq("userId", req.user.id); // Ensure the flight belongs to the authenticated user
+      .eq("userId", req.user.userId); // Ensure the flight belongs to the authenticated user
 
     if (error) throw error;
     res.status(204).send();

@@ -1,16 +1,16 @@
- const db = require("../db");
+const db = require("../db");
 
 const getNotifications = async (req, res) => {
-    try {
-	const sevenDaysAgo = new Date();
-	sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-	const { data, error } = await db
-	      .from("notifications")
-	      .select(' message, created_at')
-	      .eq('google_id', req.user.id)
-              .or(`isRead.eq.false,created_at.gte.${sevenDaysAgo.toISOString()}`)
-	      .order('created_at', { ascending: false });
-     
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const { data, error } = await db
+      .from("notifications")
+      .select(' message, created_at')
+      .eq('google_id', req.user.id)
+      .or(`isRead.eq.false,created_at.gte.${sevenDaysAgo.toISOString()}`)
+      .order('created_at', { ascending: false });
+
 
     if (error) throw error;
 
@@ -26,7 +26,7 @@ const readNotification = async (req, res) => {
     const { data, error } = await db
       .from("notifications")
       .update({ isRead: true })
-      .eq('google_id', req.user.id)
+      .eq('google_id', req.user.userId)
       .eq('id', req.params.id);
 
     if (error) throw error;
@@ -43,4 +43,3 @@ module.exports = {
   getNotifications,
   readNotification
 };
-

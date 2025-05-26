@@ -1,0 +1,85 @@
+.profile-root {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  padding: 40px 16px;
+}
+
+.profile-header {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.profile-card {
+  background: #fff;
+  width: 100%;
+  max-width: 600px;
+  padding: 32px;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(30,41,59,0.09);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.profile-field {
+  font-size: 1.1rem;
+  color: #334155;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-field label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.profile-field input {
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.profile-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.profile-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  box-shadow: 0 2px 8px rgba(30,41,59,0.07);
+}
+
+.profile-btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.profile-btn.primary:hover {
+  background: #1d4ed8;
+}
+
+.profile-btn.secondary {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.profile-btn.secondary:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}

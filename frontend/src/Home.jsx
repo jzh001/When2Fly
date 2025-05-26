@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
 import LoginButton from "./components/loginButton";
-import { useState } from "react";
 import "./Home.css";
+import AllowUsersOnly from './components/allowUsersOnly';
+import { useAuth } from "./hooks/useAuth";
 
 function Home() {
-    const [token, setToken] = useState(localStorage.getItem("token"));
+    const { user, loading } = useAuth();
 
     const handleLogout = () => {
       localStorage.removeItem("token");
-      setToken(null);
       window.location.reload();
     };
 
@@ -16,19 +16,22 @@ function Home() {
       <div className="home-root">
         <header className="home-header">
           <h1 className="home-title">When2Fly</h1>
-          <LoginButton />
+          {!loading && !user && <LoginButton />}
         </header>
 
-        {token && (
+        <AllowUsersOnly>
           <nav className="home-nav">
             <Link to="/Profile">
               <button className="profile-btn">Profile Page</button>
+            </Link>
+            <Link to="/edit">
+              <button className="profile-btn">Edit Flights</button>
             </Link>
             <button className="logout-btn" onClick={handleLogout}>
               Logout
             </button>
           </nav>
-        )}
+        </AllowUsersOnly>
 
         <div className="airplane-wrapper">
           <img

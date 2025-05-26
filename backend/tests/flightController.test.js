@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 // Mock JWT token for a logged-in user
 const userId = "1"; // Replace with a valid user ID from your database
-const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
 describe("Flight Controller Endpoints", () => {
     let server; // To store the server instance
