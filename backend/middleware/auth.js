@@ -6,12 +6,14 @@ function authMiddleware(req, res, next) {
 
   try {
     const user = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = user;
+    req.user = {
+      ...user,
+      userId: user.userId || user.id || user.google_id
+    };
     next();
   } catch {
     res.sendStatus(403);
   }
 }
-
 
 module.exports = authMiddleware;
