@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { useAuth } from "./hooks/useAuth";
 import {
   Avatar,
@@ -21,6 +23,9 @@ import { FlightAdder } from './FlightAdder.jsx';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export const FlightEditor = () => {
   const [args, setArgs] = useState({});
   const [initLoading, setInitLoading] = useState(true);
@@ -30,6 +35,8 @@ export const FlightEditor = () => {
   const token = localStorage.getItem("token");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { user } = useAuth();
+
+  const userTimezone = user?.timezone || "UTC";
 
   useEffect(() => {
     if (!user) return;
@@ -72,7 +79,7 @@ export const FlightEditor = () => {
       mode: "edit",
       id: edited.id,
     });
-    const flightDate = dayjs(edited.time);
+    const flightDate = dayjs(edited.time).tz(userTimezone);
     form.setFieldsValue({
       name: edited.name,
       date: flightDate,
@@ -97,6 +104,7 @@ export const FlightEditor = () => {
           data={data}
           setData={setData}
           form={form}
+          userTimezone={userTimezone}
         />
       </Modal>
       <List
@@ -139,7 +147,7 @@ export const FlightEditor = () => {
                   {item.name}
                 </Link>
               }
-              description={item.time.split("T").join(" ")}
+              description={dayjs(item.time).tz(userTimezone).format("YYYY-MM-DD HH:mm")}
             />
             <div>Enjoy your flight!</div>
           </List.Item>

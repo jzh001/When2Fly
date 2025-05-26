@@ -1,19 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
     Button,
     DatePicker,
     TimePicker,
     Form,
     Input,
-    Upload,
     message,
 } from 'antd';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-
-export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form }) => {
+export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form, userTimezone = "UTC" }) => {
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
@@ -27,8 +31,6 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form }) => 
             });
 
             message.success('Flight added successfully!');
-            // console.log(res.data);
-
             setData([...data, res.data]);
         } catch (error) {
             message.error('Failed to add flight');
@@ -46,8 +48,6 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form }) => 
             });
 
             message.success('Flight updated successfully!');
-            // console.log(res.data);
-
             setData(data.map(flight => flight.id === id ? res.data : flight));
         } catch (error) {
             message.error('Failed to update flight');
@@ -59,21 +59,19 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form }) => 
         <Form
             form={form}
             onFinish={inputs => {
+                const localDateTime = dayjs(`${inputs['date'].format('YYYY-MM-DD')}T${inputs['time'].format('HH:mm:ss')}`).tz(userTimezone, true);
+                const utcTime = localDateTime.utc().format();
+
                 const values = {
                     name: inputs['name'],
-                    time: `${inputs['date'].format('YYYY-MM-DD')}T${inputs['time'].format('HH:mm:ss')}`
+                    time: utcTime
                 };
-                // console.log("Received the following values: ", values);
                 switch (mode) {
                     case "add":
-                        handleAdd({
-                            values: values,
-                        });
+                        handleAdd({ values });
                         break;
                     case "edit":
-                        handleEdit({
-                            values: values,
-                        });
+                        handleEdit({ values });
                         break;
                     default:
                         console.error("Unknown mode:", mode);
@@ -81,8 +79,9 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form }) => 
                 }
                 handleSubmit();
             }}
-            style={{ maxWidth: 600 }}
+            style={{ maxWidth: 600, margin: "0 auto" }}
             labelAlign="right"
+            layout="vertical"
         >
             <Form.Item
                 name="name"
@@ -106,15 +105,14 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form }) => 
                 rules={[{ type: 'object', required: true, message: 'Please select a time!' }]}
             >
                 <TimePicker />
-            </Form.Item>
-
-            <Form.Item
-                wrapperCol={{ span: 24 }}
-                style={{ display: "flex", justifyContent: "left" }}
-            >
-                <Button type="primary" htmlType="submit">
-                    Submit
-                </Button>
+                <Form.Item
+                    wrapperCol={{ span: 24 }}
+                    style={{ display: "flex", justifyContent: "left" }}
+                >
+                    <Button type="primary" htmlType="submit">
+                        Submit
+                    </Button>
+                </Form.Item>
             </Form.Item>
         </Form>
     );

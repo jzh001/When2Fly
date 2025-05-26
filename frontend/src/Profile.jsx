@@ -1,36 +1,59 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import { Card, Button, Input, Select, Spin, message } from "antd";
+import { EditOutlined, SaveOutlined, CloseOutlined, ArrowLeftOutlined, BellOutlined } from "@ant-design/icons";
+import "./Profile.css";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-import "./Profile.css";
+
+const timezones = [
+  "UTC",
+  "America/Los_Angeles",
+  "America/New_York",
+  "Europe/London",
+  "Europe/Paris",
+  "Asia/Shanghai",
+  "Asia/Tokyo",
+  "Australia/Sydney"
+];
 
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [accData, setAccData] = useState({ name: "", email: "" });
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [tzEditMode, setTzEditMode] = useState(false);
+  const [timezoneValue, setTimezoneValue] = useState("UTC");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Get token from localStorage (adjust if you store it elsewhere)
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchUser = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(`${BACKEND_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(response.data);
         setAccData({ name: response.data.name, email: response.data.email });
+        setTimezoneValue(response.data.timezone || "UTC");
       } catch (error) {
-        alert("Failed to load user profile.");
+        message.error("Failed to load user profile.");
       } finally {
         setLoading(false);
       }
     };
     fetchUser();
-  }, [token]);
+  }, [token, location.pathname]);
 
   const handleChange = (e) => {
     setAccData({ ...accData, [e.target.name]: e.target.value });
@@ -38,60 +61,151 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      const response = await axios.put(
+      await axios.put(
         `${BACKEND_URL}/users/update-name`,
         { userId: user.google_id, newName: accData.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUser({ ...user, name: accData.name });
       setEditMode(false);
-      alert("Profile updated!");
+      message.success("Profile updated!");
     } catch (error) {
-      alert("Failed to update profile.");
+      message.error("Failed to update profile.");
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const handleTimezoneSave = async () => {
+    try {
+      await axios.put(
+        `${BACKEND_URL}/users/update-timezone`,
+        { userId: user.google_id, timezone: timezoneValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUser({ ...user, timezone: timezoneValue });
+      setTimezoneValue(timezoneValue);
+      setTzEditMode(false);
+      message.success("Timezone updated!");
+    } catch (error) {
+      message.error("Failed to update timezone.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="profile-root" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
   if (!user) return <div>No user data found.</div>;
 
   return (
-  <div className="profile-root">
-    <h2 className="profile-header">Profile</h2>
-    <div className="profile-card">
-      <div className="profile-field">
-        <label>Name:</label>
-        {editMode ? (
-          <input
-            name="name"
-            value={accData.name}
-            onChange={handleChange}
-          />
-        ) : (
-          <span>{user.name}</span>
-        )}
-      </div>
-      <div className="profile-field">
-        <label>Email:</label>
-        <span>{user.email}</span>
-      </div>
-
-      {editMode ? (
-        <div className="profile-inline-buttons">
-          <button className="profile-btn primary" onClick={handleSave}>Save</button>
-          <button className="profile-btn secondary" onClick={() => setEditMode(false)}>Cancel</button>
+    <div className="profile-root">
+      <div className="profile-card">
+        <h2 className="profile-header">Profile</h2>
+        <div className="profile-field">
+          <label>Name</label>
+          {editMode ? (
+            <div style={{ display: "flex", gap: 8 }}>
+              <Input
+                name="name"
+                value={accData.name}
+                onChange={handleChange}
+                style={{ flex: 1 }}
+                maxLength={32}
+                autoFocus
+              />
+              <Button
+                icon={<SaveOutlined />}
+                type="primary"
+                onClick={handleSave}
+                style={{ minWidth: 40 }}
+              />
+              <Button
+                icon={<CloseOutlined />}
+                onClick={() => {
+                  setEditMode(false);
+                  setAccData({ ...accData, name: user.name });
+                }}
+                style={{ minWidth: 40 }}
+              />
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>{user.name}</span>
+              <Button
+                icon={<EditOutlined />}
+                size="small"
+                onClick={() => setEditMode(true)}
+                style={{ marginLeft: 8 }}
+              />
+            </div>
+          )}
         </div>
-      ) : (
-        <button className="profile-btn primary" onClick={() => setEditMode(true)}>Edit Name</button>
-      )}
-
-      <div className="profile-bottom-buttons">
-        <button className="profile-btn secondary" onClick={() => navigate("/notifications")}>View Notifications</button>
-        <button className="profile-btn secondary" onClick={() => navigate("/")}>Back to Home</button>
+        <div className="profile-field">
+          <label>Email</label>
+          <span style={{ fontSize: 16 }}>{user.email}</span>
+        </div>
+        <div className="profile-field">
+          <label>Timezone</label>
+          {tzEditMode ? (
+            <div style={{ display: "flex", gap: 8 }}>
+              <Select
+                showSearch
+                value={timezoneValue}
+                onChange={setTimezoneValue}
+                style={{ flex: 1 }}
+                options={timezones.map(tz => ({ value: tz, label: tz }))}
+                optionFilterProp="label"
+              />
+              <Button
+                icon={<SaveOutlined />}
+                type="primary"
+                onClick={handleTimezoneSave}
+                style={{ minWidth: 40 }}
+              />
+              <Button
+                icon={<CloseOutlined />}
+                onClick={() => {
+                  setTimezoneValue(user.timezone || "UTC");
+                  setTzEditMode(false);
+                }}
+                style={{ minWidth: 40 }}
+              />
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <span style={{ fontSize: 16 }}>{timezoneValue || "UTC"}</span>
+              <Button
+                icon={<EditOutlined />}
+                size="small"
+                onClick={() => setTzEditMode(true)}
+                style={{ marginLeft: 8 }}
+              />
+            </div>
+          )}
+        </div>
+        <div className="profile-buttons" style={{ justifyContent: "center" }}>
+          <Button
+            icon={<BellOutlined />}
+            onClick={() => navigate("/notifications")}
+            type="default"
+            className="profile-btn secondary"
+          >
+            Notifications
+          </Button>
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={() => navigate("/")}
+            type="default"
+            className="profile-btn secondary"
+          >
+            Home
+          </Button>
+        </div>
       </div>
     </div>
-  </div>
   );
-
 };
 
 export default Profile;

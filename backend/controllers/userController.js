@@ -47,7 +47,7 @@ const getCurrentUser = async (req, res) => {
 
     const { data, error } = await db
       .from("users")
-      .select("google_id, name, email")
+      .select("google_id, name, email, timezone")
       .eq("google_id", userId)
       .single();
 
