@@ -1,10 +1,16 @@
 const request = require("supertest");
-const app = require("../index"); 
+const app = require("../index");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
+const db = require("../db");
 
-const userId = process.env.TEST_GOOGLE_ID;
+const userId = "dummy-user-id-12345";
 const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+beforeAll(async () => {
+    await db.from("users").insert([
+        { google_id: userId, name: "Dummy User", email: "dummy@example.com" }
+    ]);
+});
 
 describe("Flight Controller Endpoints", () => {
     let server;
@@ -190,6 +196,49 @@ describe("Flight Controller Endpoints", () => {
             }
         } catch (error) {
             console.error('Cleanup failed:', error);
+        }
+    });
+
+    it("should fetch all flights within a specific time range (all users)", async () => {
+        const flights = [
+            { name: "Global Flight 1", time: "2025-06-01T10:00:00Z", userId: "userA" },
+            { name: "Global Flight 2", time: "2025-06-01T12:00:00Z", userId: "userB" },
+            { name: "Global Flight 3", time: "2025-06-01T14:00:00Z", userId: "userC" },
+            { name: "Global Flight 4", time: "2025-06-02T10:00:00Z", userId: "userA" },
+        ];
+
+        for (const flight of flights) {
+            await request(app)
+                .post("/flights")
+                .set("Authorization", `Bearer ${token}`)
+                .send(flight);
+        }
+
+        const query = {
+            time: "2025-06-01T12:00:00Z",
+            interval: 3,
+        };
+
+        const res = await request(app)
+            .get(`/flights/allFlights?time=${query.time}&interval=${query.interval}`)
+            .set("Authorization", `Bearer ${token}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body.map(f => f.name)).toEqual(
+            expect.arrayContaining(["Global Flight 1", "Global Flight 2", "Global Flight 3"])
+        );
+        expect(res.body.map(f => f.name)).not.toContain("Global Flight 4");
+
+        const allFlights = await request(app)
+            .get("/flights")
+            .set("Authorization", `Bearer ${token}`);
+        for (const flight of allFlights.body) {
+            if (flight.name.startsWith("Global Flight")) {
+                await request(app)
+                    .delete(`/flights/${flight.id}`)
+                    .set("Authorization", `Bearer ${token}`);
+            }
         }
     });
 });
