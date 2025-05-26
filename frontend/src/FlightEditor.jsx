@@ -7,20 +7,14 @@ import {
   Avatar,
   Button,
   List,
-  Skeleton,
   Popconfirm,
   Modal,
-  DatePicker,
-  TimePicker,
   Form,
-  Input,
-  Upload,
   message
 } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { FlightAdder } from './FlightAdder.jsx';
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 dayjs.extend(utc);
@@ -54,7 +48,7 @@ export const FlightEditor = () => {
 
   const handleDelete = async (deleted) => {
     try {
-      const res = await axios.delete(`${BACKEND_URL}/flights/${deleted.id}`, {
+      await axios.delete(`${BACKEND_URL}/flights/${deleted.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -79,11 +73,11 @@ export const FlightEditor = () => {
       mode: "edit",
       id: edited.id,
     });
-    const flightDate = dayjs(edited.time).tz(userTimezone);
+    const flightDateTime = dayjs.utc(edited.time).tz(userTimezone);
     form.setFieldsValue({
       name: edited.name,
-      date: flightDate,
-      time: flightDate,
+      date: flightDateTime,
+      time: dayjs(flightDateTime.format('HH:mm:ss'), 'HH:mm:ss'),
     });
   };
 
@@ -107,6 +101,9 @@ export const FlightEditor = () => {
           userTimezone={userTimezone}
         />
       </Modal>
+      <div style={{ textAlign: "center", color: "#888", fontSize: 14, marginBottom: 8 }}>
+        Showing times in your timezone: <b>{userTimezone}</b>
+      </div>
       <List
         className="demo-loadmore-list"
         loading={initLoading}
@@ -147,9 +144,8 @@ export const FlightEditor = () => {
                   {item.name}
                 </Link>
               }
-              description={dayjs(item.time).tz(userTimezone).format("YYYY-MM-DD HH:mm")}
+              description={dayjs.utc(item.time).tz(userTimezone).format("YYYY-MM-DD HH:mm")}
             />
-            <div>Enjoy your flight!</div>
           </List.Item>
         )}
       />

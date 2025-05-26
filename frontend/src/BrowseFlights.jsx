@@ -11,6 +11,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import axios from "axios";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -49,8 +54,11 @@ const BrowseFlights = () => {
         showMine || !user || String(f.userId) !== String(user.google_id)
     );
 
+    // console.log("user from useAuth:", user);
+    const userTimezone = user?.timezone || "UTC";
+
     return (
-        <div style={{ maxWidth: 700, margin: "0 auto", padding: 24 }}>
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: 24, paddingBottom: 48 }}>
             <h2 style={{ textAlign: "center" }}>Browse All Flights</h2>
             <div style={{ margin: "24px 0", display: "flex", alignItems: "center", gap: 24, justifyContent: "center" }}>
                 <span>Show flights in next</span>
@@ -71,6 +79,9 @@ const BrowseFlights = () => {
                 />
                 <span>Show my flights</span>
             </div>
+            <div style={{ textAlign: "center", color: "#888", fontSize: 14, marginBottom: 8 }}>
+                Showing times in your timezone: <b>{userTimezone}</b>
+            </div>
             <List
                 className="demo-loadmore-list"
                 loading={initLoading}
@@ -88,7 +99,7 @@ const BrowseFlights = () => {
                                     </span>
                                 </>
                             }
-                            description={`Time: ${item.time} | User: ${item.userId}`}
+                            description={`Time: ${dayjs.utc(item.time).tz(userTimezone).format("YYYY-MM-DD HH:mm")}`}
                         />
                         <div>Enjoy your flight!</div>
                     </List.Item>

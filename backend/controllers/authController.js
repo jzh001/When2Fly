@@ -61,7 +61,7 @@ const validateToken = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { data, error } = await db
       .from("users")
-      .select("google_id, name, email")
+      .select("google_id, name, email, timezone")
       .eq("google_id", decoded.userId)
       .single();
 

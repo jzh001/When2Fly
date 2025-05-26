@@ -59,7 +59,9 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form, userT
         <Form
             form={form}
             onFinish={inputs => {
-                const localDateTime = dayjs(`${inputs['date'].format('YYYY-MM-DD')}T${inputs['time'].format('HH:mm:ss')}`).tz(userTimezone, true);
+                const dateStr = inputs['date'].format('YYYY-MM-DD');
+                const timeStr = inputs['time'].format('HH:mm:ss');
+                const localDateTime = dayjs.tz(`${dateStr}T${timeStr}`, userTimezone);
                 const utcTime = localDateTime.utc().format();
 
                 const values = {
@@ -83,6 +85,9 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form, userT
             labelAlign="right"
             layout="vertical"
         >
+            <div style={{ textAlign: "center", color: "#888", fontSize: 14, marginBottom: 16 }}>
+                You are adding a flight in your timezone: <b>{userTimezone}</b>
+            </div>
             <Form.Item
                 name="name"
                 label="Name"
@@ -105,14 +110,14 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form, userT
                 rules={[{ type: 'object', required: true, message: 'Please select a time!' }]}
             >
                 <TimePicker />
-                <Form.Item
-                    wrapperCol={{ span: 24 }}
-                    style={{ display: "flex", justifyContent: "left" }}
-                >
-                    <Button type="primary" htmlType="submit">
-                        Submit
-                    </Button>
-                </Form.Item>
+            </Form.Item>
+            <Form.Item
+                wrapperCol={{ span: 24 }}
+                style={{ display: "flex", justifyContent: "left" }}
+            >
+                <Button type="primary" htmlType="submit">
+                    Submit
+                </Button>
             </Form.Item>
         </Form>
     );
