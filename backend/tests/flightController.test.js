@@ -213,5 +213,52 @@ describe("Flight Controller Endpoints", () => {
             console.error('Cleanup failed:', error);
         }
     });
+    it("should fetch all flights within a specific time range (all users)", async () => {
+        // Create flights for different users
+        const flights = [
+            { name: "Global Flight 1", time: "2025-06-01T10:00:00Z", userId: "userA" },
+            { name: "Global Flight 2", time: "2025-06-01T12:00:00Z", userId: "userB" },
+            { name: "Global Flight 3", time: "2025-06-01T14:00:00Z", userId: "userC" },
+            { name: "Global Flight 4", time: "2025-06-02T10:00:00Z", userId: "userA" }, // outside range
+        ];
+
+        // Insert flights directly using your db or via API as needed
+        for (const flight of flights) {
+            await request(app)
+                .post("/flights")
+                .set("Authorization", `Bearer ${token}`)
+                .send(flight);
+        }
+
+        // Query for flights within a 3-hour interval around "2025-06-01T12:00:00Z"
+        const query = {
+            time: "2025-06-01T12:00:00Z",
+            interval: 3, // 3 hours before and after
+        };
+
+        const res = await request(app)
+            .get(`/flights/allFlights?time=${query.time}&interval=${query.interval}`)
+            .set("Authorization", `Bearer ${token}`);
+
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body)).toBe(true);
+        // Should include Global Flight 1, 2, 3 but not 4
+        expect(res.body.map(f => f.name)).toEqual(
+            expect.arrayContaining(["Global Flight 1", "Global Flight 2", "Global Flight 3"])
+        );
+        expect(res.body.map(f => f.name)).not.toContain("Global Flight 4");
+
+        // Clean up: delete the created flights
+        const allFlights = await request(app)
+            .get("/flights")
+            .set("Authorization", `Bearer ${token}`);
+        for (const flight of allFlights.body) {
+            if (flight.name.startsWith("Global Flight")) {
+                await request(app)
+                    .delete(`/flights/${flight.id}`)
+                    .set("Authorization", `Bearer ${token}`);
+            }
+        }
+    });
 });
 

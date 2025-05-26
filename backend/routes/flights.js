@@ -8,11 +8,13 @@ const {
   createFlight,
   updateFlight,
   deleteFlight,
+  getAllFlightsInTimeRange,
 } = require("../controllers/flightController");
 const authMiddleware = require("../middleware/auth");
 
 router.use(authMiddleware);
 
+router.get("/allFlights", getAllFlightsInTimeRange); // <-- move this up!
 router.get("/", getAllFlights);
 router.get("/queryTime", getFlightsInTimeRange);
 router.get("/user/:userId", getFlightsByUser);

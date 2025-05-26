@@ -1,13 +1,10 @@
-const flights = require("../data/flightsData");
 const db = require("../db");
 
-// Get all flights for the authenticated user
 const getAllFlights = async (req, res) => {
   try {
     const { data, error } = await db
       .from("flights")
       .select("*")
-      .eq("userId", req.user.userId); // Filter by authenticated user's ID
 
     if (error) throw error;
     res.json(data);
@@ -69,6 +66,35 @@ const getFlightsInTimeRange = async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("Error fetching flights in time range:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getAllFlightsInTimeRange = async (req, res) => {
+  const { time, interval } = req.query;
+  if (!time || !interval) {
+    return res.status(400).json({ message: "Time and interval are required" });
+  }
+
+  try {
+    const queryTime = new Date(time);
+    const minTime = new Date(queryTime.getTime() - interval * 60 * 60 * 1000).toISOString();
+    const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000).toISOString();
+
+    const { data, error } = await db
+      .from("flights")
+      .select("*")
+      .gte("time", minTime)
+      .lte("time", maxTime);
+
+    if (error) {
+      console.error("Database error:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error("Error fetching all flights in time range:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -194,5 +220,6 @@ module.exports = {
   updateFlight,
   deleteFlight,
   getFlightsInTimeRange,
-  getFlightsByUser
+  getFlightsByUser,
+  getAllFlightsInTimeRange
 };
