@@ -1,34 +1,33 @@
 import React, { useState } from 'react';
 import {
-  Button,
-  DatePicker,
-  TimePicker,
-  Form,
-  Input,
-  Upload,
-  message,
+    Button,
+    DatePicker,
+    TimePicker,
+    Form,
+    Input,
+    Upload,
+    message,
 } from 'antd';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 
-export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
-    const [form] = Form.useForm();
+export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form }) => {
     const token = localStorage.getItem("token");
     const navigate = useNavigate();
 
     const handleAdd = async ({ values }) => {
         try {
             const res = await axios.post(`${BACKEND_URL}/flights/`, values, {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
             });
-    
+
             message.success('Flight added successfully!');
-            console.log(res.data);
+            // console.log(res.data);
 
             setData([...data, res.data]);
         } catch (error) {
@@ -36,19 +35,19 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
             console.error('Failed connection: ', error);
         }
     };
-    
+
     const handleEdit = async ({ values }) => {
         try {
             const res = await axios.put(`${BACKEND_URL}/flights/${id}`, values, {
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
             });
-    
+
             message.success('Flight updated successfully!');
-            console.log(res.data);
-    
+            // console.log(res.data);
+
             setData(data.map(flight => flight.id === id ? res.data : flight));
         } catch (error) {
             message.error('Failed to update flight');
@@ -58,36 +57,36 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
 
     return (
         <Form
-        form={form}
-        onFinish={inputs => {
-            const values = {
-                name: inputs['name'],
-                time: `${inputs['date'].format('YYYY-MM-DD')}T${inputs['time'].format('HH:mm:ss')}`
-            };
-            console.log("Received the following values: ", values);
-            switch (mode) {
-                case "add":
-                    handleAdd({ 
-                        values: values,
-                    });
-                    break;
-                case "edit":
-                    handleEdit({ 
-                        values: values,
-                     });
-                    break;
-                default:
-                    console.error("Unknown mode:", mode);
-                    break;
-            }
-            handleSubmit();
-        }}
-        style={{ maxWidth: 600 }}
-        labelAlign="right"
+            form={form}
+            onFinish={inputs => {
+                const values = {
+                    name: inputs['name'],
+                    time: `${inputs['date'].format('YYYY-MM-DD')}T${inputs['time'].format('HH:mm:ss')}`
+                };
+                // console.log("Received the following values: ", values);
+                switch (mode) {
+                    case "add":
+                        handleAdd({
+                            values: values,
+                        });
+                        break;
+                    case "edit":
+                        handleEdit({
+                            values: values,
+                        });
+                        break;
+                    default:
+                        console.error("Unknown mode:", mode);
+                        break;
+                }
+                handleSubmit();
+            }}
+            style={{ maxWidth: 600 }}
+            labelAlign="right"
         >
-            <Form.Item 
-                name="name" 
-                label="Name" 
+            <Form.Item
+                name="name"
+                label="Name"
                 rules={[{ required: true, message: 'Please enter your name!' }]}
             >
                 <Input />
@@ -100,20 +99,21 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
             >
                 <DatePicker />
             </Form.Item>
-            
-            <Form.Item 
-                name="time" 
+
+            <Form.Item
+                name="time"
                 label="Time"
                 rules={[{ type: 'object', required: true, message: 'Please select a time!' }]}
             >
                 <TimePicker />
             </Form.Item>
 
-            <Form.Item 
-                wrapperCol={{ offset: 6, span: 16 }}
+            <Form.Item
+                wrapperCol={{ span: 24 }}
+                style={{ display: "flex", justifyContent: "left" }}
             >
                 <Button type="primary" htmlType="submit">
-                Submit
+                    Submit
                 </Button>
             </Form.Item>
         </Form>

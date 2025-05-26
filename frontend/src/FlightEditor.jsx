@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import dayjs from "dayjs";
 import { useAuth } from "./hooks/useAuth";
 import {
   Avatar,
@@ -19,33 +20,31 @@ import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { FlightAdder } from './FlightAdder.jsx';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+
 export const FlightEditor = () => {
   const [args, setArgs] = useState({});
   const [initLoading, setInitLoading] = useState(true);
   const [data, setData] = useState([]);
+  const [form] = Form.useForm();
   const navigate = useNavigate();
-  const form = Form.useForm();
   const token = localStorage.getItem("token");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) return; // Wait until user is loaded
+    if (!user) return;
     (async () => {
       const res = await axios.get(`${BACKEND_URL}/flights/user/${user.google_id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Fetched user flights successfully!");
       const results = Array.isArray(res.data) ? res.data : [];
       setInitLoading(false);
       setData(results);
     })();
-  }, [user]); // Depend on user
+  }, [user]);
 
-  // More lightweight than editing: direcly updates the list of flights
   const handleDelete = async (deleted) => {
     try {
       const res = await axios.delete(`${BACKEND_URL}/flights/${deleted.id}`, {
@@ -54,20 +53,18 @@ export const FlightEditor = () => {
         },
       });
       message.success('Flight deleted requested successfully!');
-
       const newData = data.filter(flight => flight.id !== deleted.id);
       setData(newData);
     } catch (error) {
-      console.error('Error deleting flight:', error);
       message.error('Error deleting flight');
     }
   };
 
-  // Requires updating the state to display a modal & thus needs to keep track of flight id
   const handleAdd = async () => {
     setArgs({
       mode: "add",
     });
+    form.resetFields();
   };
 
   const handleEdit = async (edited) => {
@@ -75,7 +72,14 @@ export const FlightEditor = () => {
       mode: "edit",
       id: edited.id,
     });
+    const flightDate = dayjs(edited.time);
+    form.setFieldsValue({
+      name: edited.name,
+      date: flightDate,
+      time: flightDate,
+    });
   };
+
   return (
     <>
       <Modal
@@ -84,7 +88,7 @@ export const FlightEditor = () => {
         footer={null}
         width={800}
         destroyOnHidden
-        onCancel={() => setArgs({})} // <-- Add this line
+        onCancel={() => setArgs({})}
       >
         <FlightAdder
           mode={args.mode}
@@ -92,6 +96,7 @@ export const FlightEditor = () => {
           handleSubmit={() => setArgs({})}
           data={data}
           setData={setData}
+          form={form}
         />
       </Modal>
       <List
@@ -101,29 +106,31 @@ export const FlightEditor = () => {
         dataSource={data}
         renderItem={item => (
           <List.Item
-            actions={[<Button
-              key="edit"
-              type="link"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(item)}
-            >
-              Edit
-            </Button>,
-            <Popconfirm
-              key="delete"
-              title="Are you sure to delete this flight?"
-              onConfirm={() => handleDelete(item)}
-              okText="Yes"
-              cancelText="No"
-            >
+            actions={[
               <Button
+                key="edit"
                 type="link"
-                danger
-                icon={<DeleteOutlined />}
+                icon={<EditOutlined />}
+                onClick={() => handleEdit(item)}
               >
-                Delete
-              </Button>
-            </Popconfirm>]}
+                Edit
+              </Button>,
+              <Popconfirm
+                key="delete"
+                title="Are you sure to delete this flight?"
+                onConfirm={() => handleDelete(item)}
+                okText="Yes"
+                cancelText="No"
+              >
+                <Button
+                  type="link"
+                  danger
+                  icon={<DeleteOutlined />}
+                >
+                  Delete
+                </Button>
+              </Popconfirm>
+            ]}
           >
             <List.Item.Meta
               avatar={<Avatar src={item.avatar} />}
@@ -143,7 +150,7 @@ export const FlightEditor = () => {
           display: "flex",
           gap: "16px",
           marginTop: "16px",
-          justifyContent: "center", // <-- add this line to center the buttons
+          justifyContent: "center",
         }}
       >
         <Button type="primary" onClick={handleAdd}>Add Flight</Button>
