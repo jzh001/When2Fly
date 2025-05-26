@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import LoginButton from "./components/loginButton";
 import { useState } from "react";
 import "./Home.css";
-
+import AllowUsersOnly from './components/allowUsersOnly';
 function Home() {
     const [token, setToken] = useState(localStorage.getItem("token"));
 
@@ -19,16 +19,19 @@ function Home() {
           <LoginButton />
         </header>
 
-        {token && (
+        <AllowUsersOnly>
           <nav className="home-nav">
             <Link to="/Profile">
               <button className="profile-btn">Profile Page</button>
+            </Link>
+            <Link to="/edit">
+              <button className="profile-btn">Edit Flights</button>
             </Link>
             <button className="logout-btn" onClick={handleLogout}>
               Logout
             </button>
           </nav>
-        )}
+        </AllowUsersOnly>
 
         <div className="airplane-wrapper">
           <img

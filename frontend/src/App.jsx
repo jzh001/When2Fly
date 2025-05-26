@@ -1,6 +1,7 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { FlightAdder } from './FlightAdder.jsx';
+import { FlightEditor } from './FlightEditor.jsx';
 import LoginButton from "./components/loginButton";
 import Home from './Home.jsx'
 import Callback from "./Callback";
@@ -12,6 +13,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/edit" element={<FlightEditor />} />
         <Route path="/Profile" element={<Profile />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/callback" element={<Callback />} />

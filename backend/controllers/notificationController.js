@@ -5,7 +5,7 @@ const getNotifications = async (req, res) => {
     const { data, error } = await db
       .from("notifications")
 	  .select(' message, created_at')
-	  .eq('google_id', req.user.id)
+	  .eq('google_id', req.user.userId)
 	  .eq('isRead', false)
 	  .order('created_at', { ascending: false });
      
@@ -24,7 +24,7 @@ const readNotification = async (req, res) => {
     const { data, error } = await db
       .from("notifications")
       .update({ isRead: true })
-      .eq('google_id', req.user.id)
+      .eq('google_id', req.user.userId)
       .eq('id', req.params.id);
 
     if (error) throw error;

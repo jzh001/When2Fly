@@ -6,42 +6,81 @@ import {
   Form,
   Input,
   Upload,
+  message,
 } from 'antd';
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const onFinish = async (inputs) => {
-    const values = Object.assign(Object.assign({}, inputs), {
-      'date': inputs['date'].format('YYYY-MM-DD'),
-      'time': inputs['time'].format('HH:mm:ss'),
-      'name': inputs['name']
-    });
-    console.log("Received the following values: ", values);
-    try {
-        const res = await fetch('http://localhost:3000/flights/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(values),
-        });
-  
-        if (!res.ok) 
-            throw new Error(`Bad HTTP server response with status: ${res.status}`);
-  
-        const data = await res.json();
-        console.log('Flight addition requested successfully!');
-        console.log({data});
-    } catch (error) {
-        console.error('Failed connection: ', error);
-    }
-};
 
-export const FlightAdder = () => {
+export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
     const [form] = Form.useForm();
+    const token = localStorage.getItem("token");
+    const navigate = useNavigate();
+
+    const handleAdd = async ({ values }) => {
+        try {
+            const res = await axios.post('http://localhost:3000/flights/', values, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+            });
+    
+            message.success('Flight added successfully!');
+            console.log(res.data);
+
+            setData([...data, res.data]);
+        } catch (error) {
+            message.error('Failed to add flight');
+            console.error('Failed connection: ', error);
+        }
+    };
+    
+    const handleEdit = async ({ values }) => {
+        try {
+            const res = await axios.put(`http://localhost:3000/flights/${id}`, values, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+            });
+    
+            message.success('Flight updated successfully!');
+            console.log(res.data);
+    
+            setData(data.map(flight => flight.id === id ? res.data : flight));
+        } catch (error) {
+            message.error('Failed to update flight');
+            console.error('Failed connection: ', error);
+        }
+    };
 
     return (
         <Form
         form={form}
-        onFinish={onFinish} 
+        onFinish={inputs => {
+            const values = {
+                name: inputs['name'],
+                time: `${inputs['date'].format('YYYY-MM-DD')}T${inputs['time'].format('HH:mm:ss')}`
+            };
+            console.log("Received the following values: ", values);
+            switch (mode) {
+                case "add":
+                    handleAdd({ 
+                        values: values,
+                    });
+                    break;
+                case "edit":
+                    handleEdit({ 
+                        values: values,
+                     });
+                    break;
+                default:
+                    console.error("Unknown mode:", mode);
+                    break;
+            }
+            handleSubmit();
+        }}
         style={{ maxWidth: 600 }}
         labelAlign="right"
         >
