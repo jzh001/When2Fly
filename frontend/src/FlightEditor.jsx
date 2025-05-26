@@ -24,12 +24,13 @@ export const FlightEditor = () => {
   const navigate = useNavigate();
   const form = Form.useForm();
   const token = localStorage.getItem("token");
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     // It turns out that the function passed to useEffect can only return a cleanup function,
     // and async functions are not supported since they return a promise
     (async () => {
-      const res = await axios.get('http://localhost:3000/flights/', {
+      const res = await axios.get(`${BACKEND_URL}/flights/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -45,7 +46,7 @@ export const FlightEditor = () => {
   // More lightweight than editing: direcly updates the list of flights
   const handleDelete = async (deleted) => {
     try {
-        const res = await axios.delete(`http://localhost:3000/flights/${deleted.id}`, {
+        const res = await axios.delete(`${BACKEND_URL}/flights/${deleted.id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

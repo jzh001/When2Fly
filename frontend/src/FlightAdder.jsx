@@ -10,6 +10,7 @@ import {
 } from 'antd';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 
 export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
@@ -19,7 +20,7 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
 
     const handleAdd = async ({ values }) => {
         try {
-            const res = await axios.post('http://localhost:3000/flights/', values, {
+            const res = await axios.post(`${BACKEND_URL}/flights/`, values, {
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
@@ -38,7 +39,7 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData }) => {
     
     const handleEdit = async ({ values }) => {
         try {
-            const res = await axios.put(`http://localhost:3000/flights/${id}`, values, {
+            const res = await axios.put(`${BACKEND_URL}/flights/${id}`, values, {
               headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,

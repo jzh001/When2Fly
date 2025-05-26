@@ -2,6 +2,8 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ export function useAuth() {
     }
 
     try {
-      const res = await axios.get("http://localhost:3000/auth/verify", {
+      const res = await axios.get(`${BACKEND_URL}/auth/verify`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(res.data); // contains name, email, etc.;
@@ -26,7 +28,7 @@ export function useAuth() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [BACKEND_URL]);
 
   useEffect(() => {
     validateToken();
