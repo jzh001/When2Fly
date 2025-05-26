@@ -77,14 +77,14 @@ const getAllFlightsInTimeRange = async (req, res) => {
   }
 
   try {
+    const now = new Date().toISOString();
     const queryTime = new Date(time);
-    const minTime = new Date(queryTime.getTime() - interval * 60 * 60 * 1000).toISOString();
     const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await db
       .from("flights")
       .select("*, users(name)")
-      .gte("time", minTime)
+      .gte("time", now)
       .lte("time", maxTime);
 
     if (error) {
