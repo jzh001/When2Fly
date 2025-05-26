@@ -7,7 +7,7 @@ const getNotifications = async (req, res) => {
     const { data, error } = await db
       .from("notifications")
       .select(' message, created_at')
-      .eq('google_id', req.user.id)
+      .eq('google_id', req.user.userId)
       .or(`isRead.eq.false,created_at.gte.${sevenDaysAgo.toISOString()}`)
       .order('created_at', { ascending: false });
 

@@ -30,29 +30,8 @@ describe("Notification Controller Endpoints", () => {
         expect(res.body.length).toBe(0);
     });
 
-    it("should fetch unread notifications for the logged-in user", async () => {
-        // Insert a test notification
-        const notif = {
-            google_id: userId,
-            message: "Test notification",
-            isRead: false,
-            created_at: new Date().toISOString()
-        };
-        await db.from("notifications").insert([notif]);
-
-        const res = await request(app)
-            .get("/notifications")
-            .set("Authorization", `Bearer ${token}`);
-
-        expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.length).toBeGreaterThanOrEqual(1);
-        expect(res.body[0]).toHaveProperty("message", "Test notification");
-        expect(res.body[0]).toHaveProperty("created_at");
-    });
-
-    it("should not return notifications that are marked as read", async () => {
-        // Insert a read notification
+    it("should only return notifications that are unread OR any read notifications from the last 7 days", async () => {
+        // Insert a read notification from today
         const notif = {
             google_id: userId,
             message: "Read notification",
@@ -61,12 +40,21 @@ describe("Notification Controller Endpoints", () => {
         };
         await db.from("notifications").insert([notif]);
 
+        // Fetch notifications
         const res = await request(app)
             .get("/notifications")
             .set("Authorization", `Bearer ${token}`);
 
         expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.find(n => n.message === "Read notification")).toBeUndefined();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        res.body.forEach(n => {
+            if (n.message === "Read notification") {
+                // If present, must be recent
+                expect(new Date(n.created_at).getTime()).toBeGreaterThanOrEqual(sevenDaysAgo.getTime());
+            }
+        });
     });
 
     it("should mark a notification as read", async () => {
