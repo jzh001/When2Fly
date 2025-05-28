@@ -6,6 +6,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
 
 function Callback() {
+  return <p>Logging you in...</p>;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,13 +16,10 @@ function Callback() {
 
       if (authCode) {
         try {
-          const response = await axios.post(
-            `${BACKEND_URL}/auth/google`,
-            {
-              code: authCode,
-              redirectUri: REDIRECT_URI,
-            }
-          );
+          const response = await axios.post(`${BACKEND_URL}/auth/google`, {
+            code: authCode,
+            redirectUri: REDIRECT_URI,
+          });
 
           localStorage.setItem("token", response.data.token);
           localStorage.setItem("user", JSON.stringify(response.data.user));
