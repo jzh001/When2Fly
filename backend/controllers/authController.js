@@ -6,7 +6,6 @@ const handleGoogleTokenExchange = async (req, res) => {
   try {
     const { code, redirectUri } = req.body;
 
-    // Exchange the code for tokens
     const tokenResponse = await axios.post(
       "https://oauth2.googleapis.com/token",
       null,
@@ -23,21 +22,19 @@ const handleGoogleTokenExchange = async (req, res) => {
 
     const { id_token, access_token } = tokenResponse.data;
 
-    // Decode and verify the ID token
     const userInfoResponse = await axios.get(
       `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${id_token}`
     );
 
     const { email, name, sub: googleId } = userInfoResponse.data;
 
-    // Add email domain validation
+
     if (!email.endsWith("@g.ucla.edu")) {
       return res
         .status(403)
         .json({ error: "Only @g.ucla.edu email addresses are allowed" });
     }
 
-    // First check if user exists
     const { data: existingUser } = await db
       .from("users")
       .select("*")
@@ -46,7 +43,7 @@ const handleGoogleTokenExchange = async (req, res) => {
 
     let userData;
     if (!existingUser) {
-      // If user doesn't exist, create new user with Google name
+  
       const { data, error } = await db
         .from("users")
         .insert({ google_id: googleId, email, name })
@@ -55,7 +52,7 @@ const handleGoogleTokenExchange = async (req, res) => {
       if (error) throw error;
       userData = data;
     } else {
-      // If user exists, only update email if needed
+
       if (existingUser.email !== email) {
         const { data, error } = await db
           .from("users")
@@ -70,7 +67,6 @@ const handleGoogleTokenExchange = async (req, res) => {
       }
     }
 
-    // Generate a session token (JWT)
     const token = jwt.sign({ userId: googleId }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
