@@ -37,13 +37,39 @@ const handleGoogleTokenExchange = async (req, res) => {
         .json({ error: "Only @g.ucla.edu email addresses are allowed" });
     }
 
-    // Upsert user in Supabase
-    const { data, error } = await db
+    // First check if user exists
+    const { data: existingUser } = await db
       .from("users")
-      .upsert({ google_id: googleId, email, name });
-    // Upsert: inserts a new row if google_id or email does not exist
+      .select("*")
+      .eq("google_id", googleId)
+      .single();
 
-    if (error) throw error;
+    let userData;
+    if (!existingUser) {
+      // If user doesn't exist, create new user with Google name
+      const { data, error } = await db
+        .from("users")
+        .insert({ google_id: googleId, email, name })
+        .select()
+        .single();
+      if (error) throw error;
+      userData = data;
+    } else {
+      // If user exists, only update email if needed
+      if (existingUser.email !== email) {
+        const { data, error } = await db
+          .from("users")
+          .update({ email })
+          .eq("google_id", googleId)
+          .select()
+          .single();
+        if (error) throw error;
+        userData = data;
+      } else {
+        userData = existingUser;
+      }
+    }
+
     // Generate a session token (JWT)
     const token = jwt.sign({ userId: googleId }, process.env.JWT_SECRET, {
       expiresIn: "7d",
@@ -51,7 +77,7 @@ const handleGoogleTokenExchange = async (req, res) => {
 
     res.json({
       token,
-      user: { email, name },
+      user: { email: userData.email, name: userData.name },
     });
   } catch (err) {
     console.error("Error during Google OAuth:", err);
