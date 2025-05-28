@@ -116,24 +116,28 @@ const createFlight = async (req, res) => {
     if (error) throw error;
     const newFlight = data[0];
 
-    // 2. Find all users with a flight within 2 hours of the new flight's time (excluding the creator)
+    // 2. Find all flights and their users within 2 hours of the new flight's time (excluding the creator)
     const flightTime = new Date(time);
     const minTime = new Date(flightTime.getTime() - 2 * 60 * 60 * 1000).toISOString();
     const maxTime = new Date(flightTime.getTime() + 2 * 60 * 60 * 1000).toISOString();
 
     const { data: nearbyFlights, error: nearbyError } = await db
       .from("flights")
-      .select("userId")
+      .select(`
+        userId,
+        name,
+        users (
+          name
+        )
+      `)
       .neq("userId", req.user.userId)
       .gte("time", minTime)
       .lte("time", maxTime);
 
     if (nearbyError) throw nearbyError;
 
-    // Get unique userIds
+    // Get unique userIds and prepare notifications for other users
     const userIds = [...new Set(nearbyFlights.map(f => f.userId))];
-
-    // 3. Insert a notification for each user
     const notifications = userIds.map(userId => ({
       google_id: userId,
       message: `A new flight "${name}" was added within 2 hours of your flight.`,
@@ -141,10 +145,21 @@ const createFlight = async (req, res) => {
       created_at: new Date().toISOString()
     }));
 
-    if (notifications.length > 0) {
+    // Prepare notifications for the current user about other users' flights
+    const currentUserNotifications = nearbyFlights.map(flight => ({
+      google_id: req.user.userId,
+      message: `User ${flight.users.name} has a flight "${flight.name}" within 2 hours of your new flight.`,
+      isRead: false,
+      created_at: new Date().toISOString()
+    }));
+
+    // Combine all notifications
+    const allNotifications = [...notifications, ...currentUserNotifications];
+
+    if (allNotifications.length > 0) {
       const { error: notifError } = await db
         .from("notifications")
-        .insert(notifications);
+        .insert(allNotifications);
 
       if (notifError) throw notifError;
     }
