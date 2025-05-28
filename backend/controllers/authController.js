@@ -30,6 +30,13 @@ const handleGoogleTokenExchange = async (req, res) => {
 
     const { email, name, sub: googleId } = userInfoResponse.data;
 
+    // Add email domain validation
+    if (!email.endsWith("@g.ucla.edu")) {
+      return res
+        .status(403)
+        .json({ error: "Only @g.ucla.edu email addresses are allowed" });
+    }
+
     // Upsert user in Supabase
     const { data, error } = await db
       .from("users")

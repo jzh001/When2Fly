@@ -15,19 +15,20 @@ function Callback() {
 
       if (authCode) {
         try {
-          const response = await axios.post(
-            `${BACKEND_URL}/auth/google`,
-            {
-              code: authCode,
-              redirectUri: REDIRECT_URI,
-            }
-          );
+          const response = await axios.post(`${BACKEND_URL}/auth/google`, {
+            code: authCode,
+            redirectUri: REDIRECT_URI,
+          });
 
           localStorage.setItem("token", response.data.token);
           localStorage.setItem("user", JSON.stringify(response.data.user));
           navigate("/");
         } catch (error) {
           console.error("Error exchanging code for token:", error);
+          if (error.response?.status === 403) {
+            alert("Only @g.ucla.edu email addresses are allowed to login!");
+          }
+          navigate("/");
         }
       }
     };
