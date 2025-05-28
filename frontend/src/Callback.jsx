@@ -6,7 +6,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const REDIRECT_URI = import.meta.env.VITE_GOOGLE_REDIRECT_URI;
 
 function Callback() {
-  return <p>Logging you in...</p>;
+  return <p>Logging you in..</p>;
   const navigate = useNavigate();
 
   useEffect(() => {

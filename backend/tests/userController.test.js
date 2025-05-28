@@ -110,7 +110,7 @@ describe("User Controller Endpoints", () => {
             .set("Authorization", `Bearer ${token}`)
             .send({ userId: testUser.google_id });
 
-        expect(res.statusCode).toBe(400);
+        expect(res.statusCode).toBe(400); 
     });
 
     it("should return 401 if no token is provided for timezone update", async () => {
