@@ -99,7 +99,23 @@ const BrowseFlights = () => {
                                     </span>
                                 </>
                             }
-                            description={`Time: ${dayjs.utc(item.time).tz(userTimezone).format("YYYY-MM-DD HH:mm")}`}
+                            description={
+                                <>
+                                    Time: {dayjs.utc(item.time).tz(userTimezone).format("YYYY-MM-DD HH:mm")}
+                                    <br />
+                                    {item.users?.email && (
+                                        <span style={{ color: "#888" }}>
+                                            Author Email:{" "}
+                                            <a
+                                                href={`mailto:${item.users.email}`}
+                                                style={{ color: "#1677ff", textDecoration: "underline" }}
+                                            >
+                                                {item.users.email}
+                                            </a>
+                                        </span>
+                                    )}
+                                </>
+                            }
                         />
                         <div>Enjoy your flight!</div>
                     </List.Item>
