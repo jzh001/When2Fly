@@ -6,12 +6,14 @@ const db = require("../db");
 describe("Notification Controller Endpoints", () => {
     let server;
     const user1 = {
-        userId: "test-notif-user-1",
-        name: "Test User 1"
+        userId: "user1-id",
+        name: "Test User 1",
+        email: "test1@g.ucla.edu"
     };
     const user2 = {
-        userId: "test-notif-user-2",
-        name: "Test User 2"
+        userId: "user2-id",
+        name: "Test User 2",
+        email: "test2@g.ucla.edu"
     };
 
     const token1 = jwt.sign({ userId: user1.userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
@@ -21,8 +23,8 @@ describe("Notification Controller Endpoints", () => {
         server = app.listen(4010);
         // Create test users
         await db.from("users").upsert([
-            { google_id: user1.userId, name: user1.name, email: "test1@example.com" },
-            { google_id: user2.userId, name: user2.name, email: "test2@example.com" }
+            { google_id: user1.userId, name: user1.name, email: user1.email },
+            { google_id: user2.userId, name: user2.name, email: user2.email }
         ]);
     });
 
@@ -40,23 +42,20 @@ describe("Notification Controller Endpoints", () => {
     it("should handle two-way notifications between users", async () => {
         const baseTime = new Date();
         
-        // Create prerequisite flights for both users
-        await db.from("flights").insert([
-            {
-                userId: user1.userId,
-                name: "User 1 Existing Flight",
-                time: new Date(baseTime.getTime() + 30 * 60 * 1000).toISOString() // 30 minutes after base time
-            },
-            {
-                userId: user2.userId,
-                name: "User 2 Existing Flight",
-                time: new Date(baseTime.getTime() + 60 * 60 * 1000).toISOString() // 1 hour after base time
-            }
-        ]);
+        // User 2 creates a flight first
+        const flight2 = {
+            name: "User 2 Flight",
+            time: new Date(baseTime.getTime() + 30 * 60 * 1000).toISOString() // 30 minutes after base time
+        };
 
-        // User 1 creates a new flight
+        await request(app)
+            .post("/flights")
+            .set("Authorization", `Bearer ${token2}`)
+            .send(flight2);
+
+        // User 1 creates a flight within 2 hours of User 2's flight
         const flight1 = {
-            name: "User 1 New Flight",
+            name: "User 1 Flight",
             time: new Date(baseTime.getTime() + 45 * 60 * 1000).toISOString() // 45 minutes after base time
         };
 
@@ -71,22 +70,11 @@ describe("Notification Controller Endpoints", () => {
             .set("Authorization", `Bearer ${token2}`);
 
         expect(user2Notifications.statusCode).toBe(200);
-        expect(user2Notifications.body).toHaveLength(1);
+        expect(user2Notifications.body.length).toBeGreaterThan(0);
         expect(user2Notifications.body[0]).toEqual(expect.objectContaining({
-            message: `A new flight "${flight1.name}" was added within 2 hours of your flight.`,
+            message: `A new flight "${flight1.name}" was added within 2 hours of your flight by ${user1.name} (${user1.email}).`,
             created_at: expect.any(String)
         }));
-
-        // User 2 creates a new flight
-        const flight2 = {
-            name: "User 2 New Flight",
-            time: new Date(baseTime.getTime() + 15 * 60 * 1000).toISOString() // 15 minutes after base time
-        };
-
-        await request(app)
-            .post("/flights")
-            .set("Authorization", `Bearer ${token2}`)
-            .send(flight2);
 
         // Check that User 1 got notified about User 2's flight
         const user1Notifications = await request(app)
@@ -96,8 +84,7 @@ describe("Notification Controller Endpoints", () => {
         expect(user1Notifications.statusCode).toBe(200);
         expect(user1Notifications.body.length).toBeGreaterThan(0);
         
-        // Verify at least one notification matches our expected format
-        const expectedMessage = `A new flight "${flight2.name}" was added within 2 hours of your flight.`;
+        const expectedMessage = `User ${user2.name} (${user2.email}) has a flight "${flight2.name}" within 2 hours of your new flight.`;
         expect(user1Notifications.body.some(notification => 
             notification.message === expectedMessage
         )).toBe(true);

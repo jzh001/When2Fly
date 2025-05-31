@@ -15,7 +15,7 @@ describe("User Controller Endpoints", () => {
         await new Promise(res => setTimeout(res, 200));
         // Create a test user in the database
         const { data } = await db.from("users").insert([
-            { google_id: "test-google-id", name: currentName, email: "testuser@example.com" }
+            { google_id: "test-google-id", name: currentName, email: "testuser@g.ucla.edu" }
         ]).select();
         testUser = data[0];
         token = jwt.sign({ id: testUser.google_id }, process.env.JWT_SECRET, { expiresIn: "1h" });
