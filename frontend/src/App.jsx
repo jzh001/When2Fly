@@ -1,12 +1,12 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { FlightAdder } from './FlightAdder.jsx';
-import { FlightEditor } from './FlightEditor.jsx';
-import BrowseFlights from './BrowseFlights.jsx';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { FlightAdder } from "./FlightAdder.jsx";
+import { FlightEditor } from "./FlightEditor.jsx";
+import BrowseFlights from "./BrowseFlights.jsx";
 import LoginButton from "./components/loginButton";
-import Home from './Home.jsx'
+import Home from "./Home.jsx";
 import Callback from "./Callback";
-import Profile from './Profile.jsx';
+import Profile from "./Profile.jsx";
 import Notifications from "./Notifications.jsx";
 function App() {
   // src/App.jsx

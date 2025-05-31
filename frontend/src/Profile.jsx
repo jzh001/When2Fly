@@ -5,8 +5,15 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { Card, Button, Input, Select, Spin, message } from "antd";
-import { EditOutlined, SaveOutlined, CloseOutlined, ArrowLeftOutlined, BellOutlined } from "@ant-design/icons";
+import {
+  EditOutlined,
+  SaveOutlined,
+  CloseOutlined,
+  ArrowLeftOutlined,
+  BellOutlined,
+} from "@ant-design/icons";
 import "./Profile.css";
+import AllowUsersOnly from "./components/allowUsersOnly";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -21,7 +28,7 @@ const timezones = [
   "Europe/Paris",
   "Asia/Shanghai",
   "Asia/Tokyo",
-  "Australia/Sydney"
+  "Australia/Sydney",
 ];
 
 const Profile = () => {
@@ -92,7 +99,15 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="profile-root" style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 300 }}>
+      <div
+        className="profile-root"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 300,
+        }}
+      >
         <Spin size="large" />
       </div>
     );
@@ -100,111 +115,127 @@ const Profile = () => {
   if (!user) return <div>No user data found.</div>;
 
   return (
-    <div className="profile-root">
-      <div className="profile-card">
-        <h2 className="profile-header">Profile</h2>
-        <div className="profile-field">
-          <label>Name</label>
-          {editMode ? (
-            <div style={{ display: "flex", gap: 8 }}>
-              <Input
-                name="name"
-                value={accData.name}
-                onChange={handleChange}
-                style={{ flex: 1 }}
-                maxLength={32}
-                autoFocus
-              />
-              <Button
-                icon={<SaveOutlined />}
-                type="primary"
-                onClick={handleSave}
-                style={{ minWidth: 40 }}
-              />
-              <Button
-                icon={<CloseOutlined />}
-                onClick={() => {
-                  setEditMode(false);
-                  setAccData({ ...accData, name: user.name });
+    <AllowUsersOnly>
+      <div className="profile-root">
+        <div className="profile-card">
+          <h2 className="profile-header">Profile</h2>
+          <div className="profile-field">
+            <label>Name</label>
+            {editMode ? (
+              <div style={{ display: "flex", gap: 8 }}>
+                <Input
+                  name="name"
+                  value={accData.name}
+                  onChange={handleChange}
+                  style={{ flex: 1 }}
+                  maxLength={32}
+                  autoFocus
+                />
+                <Button
+                  icon={<SaveOutlined />}
+                  type="primary"
+                  onClick={handleSave}
+                  style={{ minWidth: 40 }}
+                />
+                <Button
+                  icon={<CloseOutlined />}
+                  onClick={() => {
+                    setEditMode(false);
+                    setAccData({ ...accData, name: user.name });
+                  }}
+                  style={{ minWidth: 40 }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
                 }}
-                style={{ minWidth: 40 }}
-              />
-            </div>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>{user.name}</span>
-              <Button
-                icon={<EditOutlined />}
-                size="small"
-                onClick={() => setEditMode(true)}
-                style={{ marginLeft: 8 }}
-              />
-            </div>
-          )}
-        </div>
-        <div className="profile-field">
-          <label>Email</label>
-          <span style={{ fontSize: 16 }}>{user.email}</span>
-        </div>
-        <div className="profile-field">
-          <label>Timezone</label>
-          {tzEditMode ? (
-            <div style={{ display: "flex", gap: 8 }}>
-              <Select
-                showSearch
-                value={timezoneValue}
-                onChange={setTimezoneValue}
-                style={{ flex: 1 }}
-                options={timezones.map(tz => ({ value: tz, label: tz }))}
-                optionFilterProp="label"
-              />
-              <Button
-                icon={<SaveOutlined />}
-                type="primary"
-                onClick={handleTimezoneSave}
-                style={{ minWidth: 40 }}
-              />
-              <Button
-                icon={<CloseOutlined />}
-                onClick={() => {
-                  setTimezoneValue(user.timezone || "UTC");
-                  setTzEditMode(false);
+              >
+                <span style={{ fontSize: 16 }}>{user.name}</span>
+                <Button
+                  icon={<EditOutlined />}
+                  size="small"
+                  onClick={() => setEditMode(true)}
+                  style={{ marginLeft: 8 }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="profile-field">
+            <label>Email</label>
+            <span style={{ fontSize: 16 }}>{user.email}</span>
+          </div>
+          <div className="profile-field">
+            <label>Timezone</label>
+            {tzEditMode ? (
+              <div style={{ display: "flex", gap: 8 }}>
+                <Select
+                  showSearch
+                  value={timezoneValue}
+                  onChange={setTimezoneValue}
+                  style={{ flex: 1 }}
+                  options={timezones.map((tz) => ({ value: tz, label: tz }))}
+                  optionFilterProp="label"
+                />
+                <Button
+                  icon={<SaveOutlined />}
+                  type="primary"
+                  onClick={handleTimezoneSave}
+                  style={{ minWidth: 40 }}
+                />
+                <Button
+                  icon={<CloseOutlined />}
+                  onClick={() => {
+                    setTimezoneValue(user.timezone || "UTC");
+                    setTzEditMode(false);
+                  }}
+                  style={{ minWidth: 40 }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
                 }}
-                style={{ minWidth: 40 }}
-              />
-            </div>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              <span style={{ fontSize: 16 }}>{timezoneValue || "UTC"}</span>
-              <Button
-                icon={<EditOutlined />}
-                size="small"
-                onClick={() => setTzEditMode(true)}
-                style={{ marginLeft: 8 }}
-              />
-            </div>
-          )}
-        </div>
-        <div className="profile-buttons" style={{ justifyContent: "center" }}>
-          <Button
-            icon={<BellOutlined />}
-            onClick={() => navigate("/notifications")}
-            type="default"
-            className="profile-btn secondary"
-          >
-            Notifications
-          </Button>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate("/")}
-            type="default"
-            className="profile-btn secondary"
-          >
-            Home
-          </Button>
+              >
+                <span style={{ fontSize: 16 }}>{timezoneValue || "UTC"}</span>
+                <Button
+                  icon={<EditOutlined />}
+                  size="small"
+                  onClick={() => setTzEditMode(true)}
+                  style={{ marginLeft: 8 }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="profile-buttons" style={{ justifyContent: "center" }}>
+            <Button
+              icon={<BellOutlined />}
+              onClick={() => navigate("/notifications")}
+              type="default"
+              className="profile-btn secondary"
+            >
+              Notifications
+            </Button>
+            <Button
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate("/")}
+              type="default"
+              className="profile-btn secondary"
+            >
+              Home
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </AllowUsersOnly>
   );
 };
 
