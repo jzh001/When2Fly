@@ -1,4 +1,5 @@
 import "./App.css";
+import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-router-dom';
 import { FlightAdder } from './FlightAdder.jsx';
 import { FlightEditor } from './FlightEditor.jsx';
@@ -9,10 +10,40 @@ import Callback from "./Callback";
 import Profile from './Profile.jsx';
 import Notifications from "./Notifications.jsx";
 import AllowUsersOnly from "./components/allowUsersOnly";
+import { HomeOutlined, EditOutlined, UserOutlined, BellOutlined, SearchOutlined } from '@ant-design/icons';
 import { ConfigProvider, Layout, Menu } from 'antd';
 const { Header, Content } = Layout;
 
+const menuItems = [
+  {
+    label: <Link to="/">Home</Link>,
+    icon: <HomeOutlined />,
+    key: 'home',
+  },
+  {
+    label: <Link to="/edit">Flight Editor</Link>,
+    icon: <EditOutlined />,
+    key: 'edit',
+  },
+  {
+    label: <Link to="/profile">Profile</Link>,
+    icon: <UserOutlined />,
+    key: 'profile',
+  },
+  {
+    label: <Link to="/notifications">Notifications</Link>,
+    icon: <BellOutlined />,
+    key: 'notifications',
+  },
+  {
+    label: <Link to="/browse">Browse Flights</Link>,
+    icon: <SearchOutlined />,
+    key: 'browse',
+  },
+];
+
 const AppLayout = () => {
+
   return (
     <ConfigProvider
       theme={{
@@ -31,25 +62,15 @@ const AppLayout = () => {
     >
       <Layout>
         <Header>
-          <Menu style={{ width: "100%"}} theme="dark" mode="horizontal" defaultSelectedKeys={['home']}>
-            <Menu.Item key="home">
-              <Link to="/">Home</Link>
-            </Menu.Item>
-            <Menu.Item key="edit">
-              <Link to="/edit">Flight Editor</Link>
-            </Menu.Item>
-            <Menu.Item key="profile">
-              <Link to="/profile">Profile</Link>
-            </Menu.Item>
-            <Menu.Item key="notifications">
-              <Link to="/notifications">Notifications</Link>
-            </Menu.Item>
-            <Menu.Item key="browse">
-              <Link to="/browse">Browse Flights</Link>
-            </Menu.Item>
-          </Menu>
+          <Menu 
+            items={menuItems} 
+            style={{ width: "100%"}} 
+            theme="dark" 
+            mode="horizontal" 
+            defaultSelectedKeys={['home']}  
+          />
         </Header>
-        <Content style={{ 'background-color': "#e6f0fa"}}>
+        <Content style={{ 'backgroundColor': "#e6f0fa"}}>
           <Outlet />
         </Content>
       </Layout>
@@ -58,16 +79,17 @@ const AppLayout = () => {
 };
 
 function App() {
+  const [selectedKey, setSelectedKey] = useState('home');
   // src/App.jsx
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AppLayout />}>
+        <Route path="/" element={<AppLayout/>}>
           <Route index element={<Home />} />
-          <Route path="edit" element={<FlightEditor />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="notifications" element={<Notifications />} />
-          <Route path="browse" element={<BrowseFlights />} />
+          <Route path="edit" element={<AllowUsersOnly><FlightEditor /></AllowUsersOnly>} />
+          <Route path="profile" element={<AllowUsersOnly><Profile /></AllowUsersOnly>} />
+          <Route path="notifications" element={<AllowUsersOnly><Notifications /></AllowUsersOnly>} />
+          <Route path="browse" element={<AllowUsersOnly><BrowseFlights /></AllowUsersOnly>} />
           <Route path="callback" element={<Callback />} />
           <Route path="*" element={<div>404 Not Found</div>} />
         </Route>
