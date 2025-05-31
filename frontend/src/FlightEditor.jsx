@@ -103,6 +103,7 @@ export const FlightEditor = () => {
             textAlign: "center",
             color: "#888",
             fontSize: 14,
+            marginTop: 16,
             marginBottom: 8,
           }}
         >
