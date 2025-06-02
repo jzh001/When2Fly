@@ -200,11 +200,23 @@ describe("Flight Controller Endpoints", () => {
     });
 
     it("should fetch all flights within a specific time range (all users)", async () => {
+        // Clean up any existing Global Flights before test
+        const allFlightsBefore = await request(app)
+            .get("/flights")
+            .set("Authorization", `Bearer ${token}`);
+        for (const flight of allFlightsBefore.body) {
+            if (flight.name && flight.name.startsWith("Global Flight")) {
+                await request(app)
+                    .delete(`/flights/${flight.id}`)
+                    .set("Authorization", `Bearer ${token}`);
+            }
+        }
+
         const flights = [
-            { name: "Global Flight 1", time: "2025-06-01T10:00:00Z", userId: "userA" },
-            { name: "Global Flight 2", time: "2025-06-01T12:00:00Z", userId: "userB" },
-            { name: "Global Flight 3", time: "2025-06-01T14:00:00Z", userId: "userC" },
-            { name: "Global Flight 4", time: "2025-06-02T10:00:00Z", userId: "userA" },
+            { name: "Global Flight 1", time: "2025-06-01T10:00:00Z" },
+            { name: "Global Flight 2", time: "2025-06-01T12:00:00Z" },
+            { name: "Global Flight 3", time: "2025-06-01T14:00:00Z" },
+            { name: "Global Flight 4", time: "2025-06-02T10:00:00Z" },
         ];
 
         for (const flight of flights) {
@@ -243,15 +255,29 @@ describe("Flight Controller Endpoints", () => {
     });
 
     it("should create two-way notifications with author name and email", async () => {
-        // Setup two users
+        // Cleanup: delete all flights for user1 and user2 before test
         const user1 = { id: "user1-id", name: "Test User 1", email: "test1@g.ucla.edu" };
         const user2 = { id: "user2-id", name: "Test User 2", email: "test2@g.ucla.edu" };
+        let token1 = jwt.sign({ userId: user1.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        let token2 = jwt.sign({ userId: user2.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        for (const t of [token1, token2]) {
+            const allFlights = await request(app)
+                .get("/flights")
+                .set("Authorization", `Bearer ${t}`);
+            for (const flight of allFlights.body) {
+                await request(app)
+                    .delete(`/flights/${flight.id}`)
+                    .set("Authorization", `Bearer ${t}`);
+            }
+        }
+
+        // Setup two users
         await db.from("users").insert([
             { google_id: user1.id, name: user1.name, email: user1.email },
             { google_id: user2.id, name: user2.name, email: user2.email }
         ]);
-        const token1 = jwt.sign({ userId: user1.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-        const token2 = jwt.sign({ userId: user2.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        token1 = jwt.sign({ userId: user1.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        token2 = jwt.sign({ userId: user2.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
         // User 2 creates a flight
         const flight2Res = await request(app)
