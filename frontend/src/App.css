@@ -112,10 +112,12 @@ body {
   border: 1px solid #dbe7f3;
   overflow: hidden;
   background: #3a6ea5;
-  width: auto !important;
-  max-width: 100%;
-  min-width: 220px;
-  display: inline-block;
+  width: 100% !important;
+  max-width: none;
+  min-width: 0;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .ant-layout {

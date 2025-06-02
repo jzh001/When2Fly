@@ -39,15 +39,16 @@ const getFlightsInTimeRange = async (req, res) => {
 
   try {
     const queryTime = new Date(time);
-    const minTime = new Date(queryTime.getTime() - interval * 60 * 60 * 1000);
-    const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000);
+    const now = new Date(Date.now());
+    const minTime = now.toISOString();
+    const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await db
       .from("flights")
       .select("*")
       .eq("userId", req.user.userId)
-      .gte("time", minTime.toISOString())
-      .lte("time", maxTime.toISOString());
+      .gte("time", minTime)
+      .lte("time", maxTime);
 
     if (error) {
       console.error("Database error:", error);
@@ -69,7 +70,8 @@ const getAllFlightsInTimeRange = async (req, res) => {
 
   try {
     const queryTime = new Date(time);
-    const minTime = new Date(queryTime.getTime() - interval * 60 * 60 * 1000).toISOString();
+    const now = new Date(Date.now());
+    const minTime = now.toISOString();
     const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await db

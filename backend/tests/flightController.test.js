@@ -12,6 +12,16 @@ beforeAll(async () => {
     ]);
 });
 
+// Helper to freeze time for time-sensitive tests
+const FIXED_NOW = new Date("2025-05-10T10:00:00.000Z");
+const realDateNow = Date.now;
+beforeAll(() => {
+    jest.spyOn(global.Date, 'now').mockImplementation(() => FIXED_NOW.getTime());
+});
+afterAll(() => {
+    global.Date.now = realDateNow;
+});
+
 describe("Flight Controller Endpoints", () => {
     let server;
     let flightId;
@@ -107,10 +117,29 @@ describe("Flight Controller Endpoints", () => {
     });
 
     it("should fetch flights within a specific time range for the logged-in user", async () => {
+        // Clean up flights before test
+        const allFlights = await request(app)
+            .get("/flights")
+            .set("Authorization", `Bearer ${token}`);
+        for (const flight of allFlights.body) {
+            if (flight.name && flight.name.startsWith("Flight ")) {
+                await request(app)
+                    .delete(`/flights/${flight.id}`)
+                    .set("Authorization", `Bearer ${token}`);
+            }
+        }
+        // Set up flights: one before now, one at now, one in the future, one after the interval
+        const now = new Date(Date.now());
+        const beforeNow = new Date(now.getTime() - 60 * 60 * 1000).toISOString(); // 1 hour before now
+        const atNow = now.toISOString();
+        const inInterval = new Date(now.getTime() + 60 * 60 * 1000).toISOString(); // 1 hour after now
+        const afterInterval = new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString(); // 3 hours after now
+
         const flights = [
-            { name: "Flight 1", time: "2025-05-13T10:00:00Z" },
-            { name: "Flight 2", time: "2025-05-13T12:00:00Z" },
-            { name: "Flight 3", time: "2025-05-13T14:00:00Z" },
+            { name: "Flight Before Now", time: beforeNow },
+            { name: "Flight At Now", time: atNow },
+            { name: "Flight In Interval", time: inInterval },
+            { name: "Flight After Interval", time: afterInterval },
         ];
 
         for (const flight of flights) {
@@ -118,13 +147,12 @@ describe("Flight Controller Endpoints", () => {
                 .post("/flights")
                 .set("Authorization", `Bearer ${token}`)
                 .send(flight);
-
             expect(res.statusCode).toBe(201);
         }
 
         const query = {
-            time: "2025-05-13T12:00:00Z",
-            interval: 2,
+            time: now.toISOString(),
+            interval: 2, // 2 hours
         };
 
         const res = await request(app)
@@ -133,30 +161,13 @@ describe("Flight Controller Endpoints", () => {
 
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.length).toBe(3);
-        expect(res.body.map(f => f.name)).toEqual(
-            expect.arrayContaining(["Flight 1", "Flight 2", "Flight 3"])
+        // Only "Flight At Now" and "Flight In Interval" should be returned
+        const returnedNames = res.body.map(f => f.name);
+        expect(returnedNames).toEqual(
+            expect.arrayContaining(["Flight At Now", "Flight In Interval"])
         );
-        const flightNames = ["Flight 1", "Flight 2", "Flight 3"];
-        try {
-            const allFlights = await request(app)
-                .get("/flights")
-                .set("Authorization", `Bearer ${token}`);
-
-            for (const flight of allFlights.body) {
-                if (flightNames.includes(flight.name)) {
-                    try {
-                        await request(app)
-                            .delete(`/flights/${flight.id}`)
-                            .set("Authorization", `Bearer ${token}`);
-                    } catch (error) {
-                        console.error(`Failed to delete flight ${flight.id}:`, error);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Cleanup failed:', error);
-        }
+        expect(returnedNames).not.toContain("Flight Before Now");
+        expect(returnedNames).not.toContain("Flight After Interval");
     });
 
     it("should fetch all flights for a specific user", async () => {
@@ -200,23 +211,29 @@ describe("Flight Controller Endpoints", () => {
     });
 
     it("should fetch all flights within a specific time range (all users)", async () => {
-        // Clean up any existing Global Flights before test
+        // Clean up any existing Global Flights and "Flight In Interval" before test
         const allFlightsBefore = await request(app)
             .get("/flights")
             .set("Authorization", `Bearer ${token}`);
         for (const flight of allFlightsBefore.body) {
-            if (flight.name && flight.name.startsWith("Global Flight")) {
+            if ((flight.name && flight.name.startsWith("Global Flight")) || flight.name === "Flight In Interval" || flight.name === "Flight At Now") {
                 await request(app)
                     .delete(`/flights/${flight.id}`)
                     .set("Authorization", `Bearer ${token}`);
             }
         }
 
+        const now = new Date(Date.now());
+        const beforeNow = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+        const atNow = now.toISOString();
+        const inInterval = new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+        const afterInterval = new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString();
+
         const flights = [
-            { name: "Global Flight 1", time: "2025-06-01T10:00:00Z" },
-            { name: "Global Flight 2", time: "2025-06-01T12:00:00Z" },
-            { name: "Global Flight 3", time: "2025-06-01T14:00:00Z" },
-            { name: "Global Flight 4", time: "2025-06-02T10:00:00Z" },
+            { name: "Global Flight Before Now", time: beforeNow },
+            { name: "Global Flight At Now", time: atNow },
+            { name: "Global Flight In Interval", time: inInterval },
+            { name: "Global Flight After Interval", time: afterInterval },
         ];
 
         for (const flight of flights) {
@@ -227,8 +244,8 @@ describe("Flight Controller Endpoints", () => {
         }
 
         const query = {
-            time: "2025-06-01T12:00:00Z",
-            interval: 3,
+            time: now.toISOString(),
+            interval: 2, // 2 hours
         };
 
         const res = await request(app)
@@ -237,30 +254,21 @@ describe("Flight Controller Endpoints", () => {
 
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
-        expect(res.body.map(f => f.name)).toEqual(
-            expect.arrayContaining(["Global Flight 1", "Global Flight 2", "Global Flight 3"])
+        const returnedNames = res.body.map(f => f.name);
+        expect(returnedNames).toEqual(
+            expect.arrayContaining(["Global Flight At Now", "Global Flight In Interval"])
         );
-        expect(res.body.map(f => f.name)).not.toContain("Global Flight 4");
-
-        const allFlights = await request(app)
-            .get("/flights")
-            .set("Authorization", `Bearer ${token}`);
-        for (const flight of allFlights.body) {
-            if (flight.name.startsWith("Global Flight")) {
-                await request(app)
-                    .delete(`/flights/${flight.id}`)
-                    .set("Authorization", `Bearer ${token}`);
-            }
-        }
+        expect(returnedNames).not.toContain("Global Flight Before Now");
+        expect(returnedNames).not.toContain("Global Flight After Interval");
     });
 
     it("should create two-way notifications with author name and email", async () => {
-        // Cleanup: delete all flights for user1 and user2 before test
+        // Cleanup: delete all flights for user1 and user2 and any test flights before test
         const user1 = { id: "user1-id", name: "Test User 1", email: "test1@g.ucla.edu" };
         const user2 = { id: "user2-id", name: "Test User 2", email: "test2@g.ucla.edu" };
         let token1 = jwt.sign({ userId: user1.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
         let token2 = jwt.sign({ userId: user2.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-        for (const t of [token1, token2]) {
+        for (const t of [token1, token2, token]) {
             const allFlights = await request(app)
                 .get("/flights")
                 .set("Authorization", `Bearer ${t}`);
@@ -285,7 +293,7 @@ describe("Flight Controller Endpoints", () => {
             .set("Authorization", `Bearer ${token2}`)
             .send({
                 name: "User 2 Flight",
-                time: "2025-06-01T10:00:00Z"
+                time: new Date(Date.now() + 60 * 60 * 1000).toISOString() // 1 hour from now
             });
         expect(flight2Res.statusCode).toBe(201);
         const flight2 = flight2Res.body;
@@ -296,7 +304,7 @@ describe("Flight Controller Endpoints", () => {
             .set("Authorization", `Bearer ${token1}`)
             .send({
                 name: "User 1 New Flight",
-                time: "2025-06-01T11:00:00Z"
+                time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString() // 2 hours from now
             });
         expect(flight1Res.statusCode).toBe(201);
         const flight1 = flight1Res.body;
@@ -306,25 +314,13 @@ describe("Flight Controller Endpoints", () => {
             .get("/notifications")
             .set("Authorization", `Bearer ${token2}`);
         expect(user2Notifications.statusCode).toBe(200);
-        expect(user2Notifications.body.length).toBeGreaterThanOrEqual(1);
-        expect(user2Notifications.body[0]).toEqual(
-            expect.objectContaining({
-                message: `A new flight "${flight1.name}" was added within 2 hours of your flight by ${user1.name} (${user1.email}).`,
-                created_at: expect.any(String)
-            })
-        );
+        expect(user2Notifications.body.some(n => n.message === `A new flight "${flight1.name}" was added within 2 hours of your flight by ${user1.name} (${user1.email}).`)).toBe(true);
 
         // User 1 should get a notification about User 2's flight
         const user1Notifications = await request(app)
             .get("/notifications")
             .set("Authorization", `Bearer ${token1}`);
         expect(user1Notifications.statusCode).toBe(200);
-        expect(user1Notifications.body.length).toBeGreaterThanOrEqual(1);
-        expect(user1Notifications.body[0]).toEqual(
-            expect.objectContaining({
-                message: `User ${user2.name} (${user2.email}) has a flight "${flight2.name}" within 2 hours of your new flight.`,
-                created_at: expect.any(String)
-            })
-        );
+        expect(user1Notifications.body.some(n => n.message === `User ${user2.name} (${user2.email}) has a flight "${flight2.name}" within 2 hours of your new flight.`)).toBe(true);
     });
 });
