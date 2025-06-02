@@ -53,6 +53,23 @@ const Notifications = () => {
     });
   };
 
+  const toggleIsRead = async (notifId) => {
+    try {
+      await axios.post(
+        `${BACKEND_URL}/notifications/read/${notifId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notifId ? { ...n, isRead: !n.isRead } : n
+        )
+      );
+    } catch {
+      alert("Failed to update notification status.");
+    }
+  };
+
   return (
     <AllowUsersOnly>
       <div className="notifications-root">
@@ -66,8 +83,24 @@ const Notifications = () => {
               <li key={notif.id ?? `notif-${idx}`}>
                 {renderMessage(notif.message, notif.id ?? `notif-${idx}`)}{" "}
                 {!notif.isRead && <strong>(Unread)</strong>}
+                <button
+                  className="notifications-button"
+                  style={{
+                    marginLeft: 16,
+                    background: notif.isRead ? "#f59e42" : "#2563eb",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "2px 10px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => toggleIsRead(notif.id)}
+                >
+                  Mark as {notif.isRead ? "Unread" : "Read"}
+                </button>
               </li>
-            ))}          </ul>
+            ))}
+          </ul>
         )}
       </div>
     </AllowUsersOnly>
