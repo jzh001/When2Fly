@@ -8,7 +8,7 @@ const token = jwt.sign({ userId: userId }, process.env.JWT_SECRET, { expiresIn: 
 
 beforeAll(async () => {
     await db.from("users").insert([
-        { google_id: userId, name: "Dummy User", email: "dummy@example.com" }
+        { google_id: userId, name: "Dummy User", email: "dummy@g.ucla.edu" }
     ]);
 });
 
@@ -240,5 +240,65 @@ describe("Flight Controller Endpoints", () => {
                     .set("Authorization", `Bearer ${token}`);
             }
         }
+    });
+
+    it("should create two-way notifications with author name and email", async () => {
+        // Setup two users
+        const user1 = { id: "user1-id", name: "Test User 1", email: "test1@g.ucla.edu" };
+        const user2 = { id: "user2-id", name: "Test User 2", email: "test2@g.ucla.edu" };
+        await db.from("users").insert([
+            { google_id: user1.id, name: user1.name, email: user1.email },
+            { google_id: user2.id, name: user2.name, email: user2.email }
+        ]);
+        const token1 = jwt.sign({ userId: user1.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token2 = jwt.sign({ userId: user2.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+
+        // User 2 creates a flight
+        const flight2Res = await request(app)
+            .post("/flights")
+            .set("Authorization", `Bearer ${token2}`)
+            .send({
+                name: "User 2 Flight",
+                time: "2025-06-01T10:00:00Z"
+            });
+        expect(flight2Res.statusCode).toBe(201);
+        const flight2 = flight2Res.body;
+
+        // User 1 creates a flight within 2 hours of User 2's flight
+        const flight1Res = await request(app)
+            .post("/flights")
+            .set("Authorization", `Bearer ${token1}`)
+            .send({
+                name: "User 1 New Flight",
+                time: "2025-06-01T11:00:00Z"
+            });
+        expect(flight1Res.statusCode).toBe(201);
+        const flight1 = flight1Res.body;
+
+        // User 2 should get a notification about User 1's flight
+        const user2Notifications = await request(app)
+            .get("/notifications")
+            .set("Authorization", `Bearer ${token2}`);
+        expect(user2Notifications.statusCode).toBe(200);
+        expect(user2Notifications.body.length).toBeGreaterThanOrEqual(1);
+        expect(user2Notifications.body[0]).toEqual(
+            expect.objectContaining({
+                message: `A new flight "${flight1.name}" was added within 2 hours of your flight by ${user1.name} (${user1.email}).`,
+                created_at: expect.any(String)
+            })
+        );
+
+        // User 1 should get a notification about User 2's flight
+        const user1Notifications = await request(app)
+            .get("/notifications")
+            .set("Authorization", `Bearer ${token1}`);
+        expect(user1Notifications.statusCode).toBe(200);
+        expect(user1Notifications.body.length).toBeGreaterThanOrEqual(1);
+        expect(user1Notifications.body[0]).toEqual(
+            expect.objectContaining({
+                message: `User ${user2.name} (${user2.email}) has a flight "${flight2.name}" within 2 hours of your new flight.`,
+                created_at: expect.any(String)
+            })
+        );
     });
 });

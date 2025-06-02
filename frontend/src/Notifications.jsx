@@ -15,11 +15,11 @@ const Notifications = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get(`${BACKEND_URL}/notifications`, {
+        const { data } = await axios.get(`${BACKEND_URL}/notifications`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setNotifications(response.data);
-      } catch (error) {
+        setNotifications(data);
+      } catch {
         alert("Failed to load notifications.");
       } finally {
         setLoading(false);
@@ -27,6 +27,30 @@ const Notifications = () => {
     };
     fetchNotifications();
   }, [token]);
+
+  const renderMessage = (message) => {
+    // Regex to match UCLA email addresses
+    const emailRegex = /([a-zA-Z0-9._-]+@g\.ucla\.edu)/g;
+    const parts = message.split(emailRegex);
+
+    return parts.map((part, index) => {
+      if (part.match(emailRegex)) {
+        return (
+          <a
+            key={index}
+            href={`mailto:${part}`}
+            style={{
+              color: "#1677ff",
+              textDecoration: "underline",
+            }}
+          >
+            {part}
+          </a>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
 
   return (
     <AllowUsersOnly>
@@ -40,7 +64,8 @@ const Notifications = () => {
           <ul className="notifications-list">
             {notifications.map((notif) => (
               <li key={notif.id}>
-                {notif.message} {!notif.isRead && <strong>(Unread)</strong>}
+                {renderMessage(notif.message)}{" "}
+                {!notif.isRead && <strong>(Unread)</strong>}
               </li>
             ))}
           </ul>
@@ -52,4 +77,5 @@ const Notifications = () => {
     </AllowUsersOnly>
   );
 };
+
 export default Notifications;

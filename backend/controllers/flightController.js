@@ -2,9 +2,7 @@ const db = require("../db");
 
 const getAllFlights = async (req, res) => {
   try {
-    const { data, error } = await db
-      .from("flights")
-      .select("*");
+    const { data, error } = await db.from("flights").select("*");
 
     if (error) throw error;
     res.json(data);
@@ -72,7 +70,9 @@ const getAllFlightsInTimeRange = async (req, res) => {
   try {
     const now = new Date().toISOString();
     const queryTime = new Date(time);
-    const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000).toISOString();
+    const maxTime = new Date(
+      queryTime.getTime() + interval * 60 * 60 * 1000
+    ).toISOString();
 
     const { data, error } = await db
       .from("flights")
@@ -99,6 +99,13 @@ const createFlight = async (req, res) => {
   }
 
   try {
+    const { data: currentUser, error: userError } = await db
+      .from("users")
+      .select("name, email")
+      .eq("google_id", req.user.userId)
+      .single();
+
+    if (userError) throw userError;
     const { data, error } = await db
       .from("flights")
       .insert([{ name, time, userId: req.user.userId }])
@@ -108,38 +115,44 @@ const createFlight = async (req, res) => {
     const newFlight = data[0];
 
     const flightTime = new Date(time);
-    const minTime = new Date(flightTime.getTime() - 2 * 60 * 60 * 1000).toISOString();
-    const maxTime = new Date(flightTime.getTime() + 2 * 60 * 60 * 1000).toISOString();
+    const minTime = new Date(
+      flightTime.getTime() - 2 * 60 * 60 * 1000
+    ).toISOString();
+    const maxTime = new Date(
+      flightTime.getTime() + 2 * 60 * 60 * 1000
+    ).toISOString();
 
     const { data: nearbyFlights, error: nearbyError } = await db
       .from("flights")
-      .select(`
+      .select(
+        `
         userId,
         name,
         users (
           name,
           email
         )
-      `)
+      `
+      )
       .neq("userId", req.user.userId)
       .gte("time", minTime)
       .lte("time", maxTime);
 
     if (nearbyError) throw nearbyError;
 
-    const userIds = [...new Set(nearbyFlights.map(f => f.userId))];
-    const notifications = userIds.map(userId => ({
+    const userIds = [...new Set(nearbyFlights.map((f) => f.userId))];
+    const notifications = userIds.map((userId) => ({
       google_id: userId,
-      message: `A new flight "${name}" was added within 2 hours of your flight.`,
+      message: `A new flight "${name}" was added within 2 hours of your flight by ${currentUser.name} (${currentUser.email}).`,
       isRead: false,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     }));
 
-    const currentUserNotifications = nearbyFlights.map(flight => ({
+    const currentUserNotifications = nearbyFlights.map((flight) => ({
       google_id: req.user.userId,
-      message: `User ${flight.users.name} has a flight "${flight.name}" within 2 hours of your new flight.`,
+      message: `User ${flight.users.name} (${flight.users.email}) has a flight "${flight.name}" within 2 hours of your new flight.`,
       isRead: false,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     }));
 
     const allNotifications = [...notifications, ...currentUserNotifications];
@@ -220,5 +233,5 @@ module.exports = {
   deleteFlight,
   getFlightsInTimeRange,
   getFlightsByUser,
-  getAllFlightsInTimeRange
+  getAllFlightsInTimeRange,
 };
