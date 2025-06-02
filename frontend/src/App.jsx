@@ -43,7 +43,6 @@ const menuItems = [
 ];
 
 const AppLayout = () => {
-
   return (
     <ConfigProvider
       theme={{
