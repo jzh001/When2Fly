@@ -63,7 +63,7 @@ function Callback() {
       <h2 style={{ color: '#23406e', fontWeight: 600, marginBottom: 8 }}>Logging you in...</h2>
       <div style={{ color: '#23406e', opacity: 0.8, textAlign: 'center' }}>
         <div>Please wait while we connect to the server and log you in securely.</div>
-        <div>It take up to a minute for our server to boot up. Thank you for your patience.</div>
+        <div>It may take up to a minute for our server to boot up. Thank you for your patience.</div>
       </div>
     </div>
   ) : null;
