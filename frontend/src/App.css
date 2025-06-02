@@ -1,7 +1,7 @@
 #root {
   margin: 0 auto;
   padding: 2rem;
-  background-color: #e6f0fa;
+  background-color: #f7fafd; /* softer, more neutral */
   text-align: center;
 }
 
@@ -9,21 +9,23 @@ body {
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  background-color: #e6f0fa;
+  background-color: #f7fafd; /* match root */
   font-family: "Segoe UI", system-ui, sans-serif;
   min-height: 100vh;
+  color: #222e3a; /* deeper text color */
 }
 
 .login-button {
-  padding: 0.75rem 1.5rem;
-  background-color: white;
-  border: 1px solid #dadce0;
-  border-radius: 6px;
+  padding: 0.75rem 1.75rem;
+  background-color: #f4f8fb;
+  border: 1px solid #b5c6d6;
+  border-radius: 8px;
   font-size: 1rem;
-  font-weight: 500;
-  color: #3c4043;
+  font-weight: 600;
+  color: #23406e;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, 0.07);
   cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.1s ease;
+  transition: box-shadow 0.2s ease, transform 0.1s ease, background 0.2s;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -31,12 +33,14 @@ body {
 }
 
 .login-button:hover {
-  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px rgba(60, 64, 67, 0.15);
-  transform: translateY(-1px);
+  background: #e3eef7;
+  box-shadow: 0 4px 16px rgba(60, 64, 67, 0.12);
+  transform: translateY(-2px) scale(1.03);
 }
 
 .login-button:active {
-  transform: translateY(0);
+  background: #d1e3f3;
+  transform: translateY(0) scale(1);
 }
 
 .login-button img {
@@ -83,4 +87,40 @@ body {
     transform: translateX(110vw) rotate(90deg);
     opacity: 0;
   }
+}
+
+.custom-header {
+  background: #f7fafd !important;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, 0.04) !important;
+  border-bottom: 1px solid #e3eaf2 !important;
+  padding-left: 32px !important;
+  padding-right: 32px !important;
+  padding-top: 8px !important;
+  padding-bottom: 20px !important;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+.custom-menu-bar {
+  border-radius: 18px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(60,64,67,0.10);
+  border: 1px solid #dbe7f3;
+  overflow: hidden;
+  background: #3a6ea5;
+  width: auto !important;
+  max-width: 100%;
+  min-width: 220px;
+  display: inline-block;
+}
+
+.ant-layout {
+  background: transparent !important;
+}
+.ant-layout-header.custom-header {
+  background: #f7fafd !important;
 }

@@ -1,12 +1,14 @@
 // src/hooks/useAuth.js
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import { useLocation } from 'react-router-dom';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   const validateToken = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -32,8 +34,7 @@ export function useAuth() {
 
   useEffect(() => {
     validateToken();
-  }, [validateToken]);
+  }, [location, validateToken]);
 
-  // console.log(user);
   return { user, loading, isAuthenticated: !!user };
 }

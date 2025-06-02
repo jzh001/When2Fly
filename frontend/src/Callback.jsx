@@ -33,6 +33,7 @@ function Callback() {
       }
     };
     exchangeCodeForToken();
+    navigate("/");
   }, [navigate]);
 
   return <p>Logging you in...</p>;

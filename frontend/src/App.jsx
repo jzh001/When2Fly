@@ -1,6 +1,6 @@
 import "./App.css";
 import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Outlet, useLocation } from 'react-router-dom';
 import { FlightAdder } from './FlightAdder.jsx';
 import { FlightEditor } from './FlightEditor.jsx';
 import BrowseFlights from './BrowseFlights.jsx';
@@ -12,6 +12,8 @@ import Notifications from "./Notifications.jsx";
 import AllowUsersOnly from "./components/allowUsersOnly";
 import { HomeOutlined, EditOutlined, UserOutlined, BellOutlined, SearchOutlined } from '@ant-design/icons';
 import { ConfigProvider, Layout, Menu } from 'antd';
+import MenuBarWithLogout from './components/MenuBar.jsx';
+import { useAuth } from "./hooks/useAuth";
 const { Header, Content } = Layout;
 
 const menuItems = [
@@ -43,31 +45,35 @@ const menuItems = [
 ];
 
 const AppLayout = () => {
+  const { user, loading } = useAuth();
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    window.location.reload();
+  };
   return (
     <ConfigProvider
       theme={{
         components: {
           Layout: {
-            headerBg: '#6baed6', // Navbar background
-            headerPadding: '0 24px', // Adjust padding as needed
+            headerPadding: '0 24px',
           },
           Menu: {
-            darkItemBg: 'transparent', // Makes dark menu transparent
-            darkItemColor: 'rgba(255, 255, 255, 0.9)', // Menu text color
-            darkItemSelectedBg: 'rgba(0, 0, 0, 0.3)', // Selected state
+            darkItemBg: 'transparent',
+            darkItemColor: 'rgba(255, 255, 255, 0.9)',
+            darkItemSelectedBg: 'rgba(0, 0, 0, 0.3)',
           }
         }
       }}
     >
       <Layout>
-        <Header>
-          <Menu 
-            items={menuItems} 
-            style={{ width: "100%"}} 
-            theme="dark" 
-            mode="horizontal" 
-            defaultSelectedKeys={['home']}  
-          />
+        <Header className="custom-header" style={{ minHeight: 0, height: 'auto', boxShadow: 'none', borderBottom: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingTop: 16, paddingBottom: 0 }}>
+          <h1 className="home-title" style={{ fontWeight: 700, color: '#23406e', letterSpacing: '1px', fontSize: '2.5rem', margin: 0 }}>When2Fly</h1>
+          {!loading && !user && <LoginButton />}
+          {user && (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, marginBottom: 0, width: '100%' }}>
+              <MenuBarWithLogout onLogout={handleLogout} />
+            </div>
+          )}
         </Header>
         <Content style={{ 'backgroundColor': "#e6f0fa"}}>
           <Outlet />
