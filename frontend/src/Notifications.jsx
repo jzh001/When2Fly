@@ -28,16 +28,17 @@ const Notifications = () => {
     fetchNotifications();
   }, [token]);
 
-  const renderMessage = (message) => {
+  const renderMessage = (message, parentKey) => {
     // Regex to match UCLA email addresses
     const emailRegex = /([a-zA-Z0-9._-]+@g\.ucla\.edu)/g;
     const parts = message.split(emailRegex);
 
     return parts.map((part, index) => {
+      const key = `${parentKey}-part-${index}`;
       if (part.match(emailRegex)) {
         return (
           <a
-            key={index}
+            key={key}
             href={`mailto:${part}`}
             style={{
               color: "#1677ff",
@@ -48,7 +49,7 @@ const Notifications = () => {
           </a>
         );
       }
-      return <span key={index}>{part}</span>;
+      return <span key={key}>{part}</span>;
     });
   };
 
@@ -62,9 +63,9 @@ const Notifications = () => {
           <div className="notifications-status">No notifications found.</div>
         ) : (
           <ul className="notifications-list">
-            {notifications.map((notif) => (
-              <li key={notif.id}>
-                {renderMessage(notif.message)}{" "}
+            {notifications.map((notif, idx) => (
+              <li key={notif.id ?? `notif-${idx}`}>
+                {renderMessage(notif.message, notif.id ?? `notif-${idx}`)}{" "}
                 {!notif.isRead && <strong>(Unread)</strong>}
               </li>
             ))}
