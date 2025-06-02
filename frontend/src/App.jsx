@@ -12,7 +12,7 @@ import Notifications from "./Notifications.jsx";
 import AllowUsersOnly from "./components/allowUsersOnly";
 import { HomeOutlined, EditOutlined, UserOutlined, BellOutlined, SearchOutlined } from '@ant-design/icons';
 import { ConfigProvider, Layout, Menu } from 'antd';
-import MenuBarWithLogout from './components/MenuBar.jsx';
+import MenuBar from './components/MenuBar.jsx';
 import { useAuth } from "./hooks/useAuth";
 const { Header, Content } = Layout;
 
@@ -71,7 +71,7 @@ const AppLayout = () => {
           {!loading && !user && <LoginButton />}
           {user && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, marginBottom: 0, width: '100%' }}>
-              <MenuBarWithLogout onLogout={handleLogout} />
+              <MenuBar onLogout={handleLogout} />
             </div>
           )}
         </Header>
