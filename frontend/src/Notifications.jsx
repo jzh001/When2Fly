@@ -56,7 +56,6 @@ const Notifications = () => {
   return (
     <AllowUsersOnly>
       <div className="notifications-root">
-        <h2 className="notifications-header">Notifications</h2>
         {loading ? (
           <div className="notifications-status">Loading notifications...</div>
         ) : !notifications.length ? (
@@ -68,12 +67,8 @@ const Notifications = () => {
                 {renderMessage(notif.message, notif.id ?? `notif-${idx}`)}{" "}
                 {!notif.isRead && <strong>(Unread)</strong>}
               </li>
-            ))}
-          </ul>
+            ))}          </ul>
         )}
-        <button className="notifications-button" onClick={() => navigate("/")}>
-          Back to Home
-        </button>
       </div>
     </AllowUsersOnly>
   );

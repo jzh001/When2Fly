@@ -9,6 +9,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { FlightAdder } from "./FlightAdder.jsx";
 import axios from "axios";
 import AllowUsersOnly from "./components/allowUsersOnly.jsx";
+import "./Home.css"; // Import Home.css for consistent styling
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -76,10 +77,78 @@ export const FlightEditor = () => {
       time: dayjs(flightDateTime.format("HH:mm:ss"), "HH:mm:ss"),
     });
   };
-
   return (
-    <>
-      <AllowUsersOnly>
+    <>      <AllowUsersOnly>
+        <div className="home-root" style={{ background: '#f8fafc', minHeight: '100vh', padding: '40px 16px' }}>
+          <div className="home-body" style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '700px', background: '#fff', borderRadius: '14px', boxShadow: '0 4px 24px rgba(30,41,59,0.09)', padding: '36px 32px', marginBottom: '40px' }}>
+            <div
+              style={{
+                textAlign: "center",
+                color: "#888",
+                fontSize: 14,
+                marginTop: 16,
+                marginBottom: 8,
+              }}
+            >
+              Showing times in your timezone: <b>{userTimezone}</b>
+            </div>
+            <List
+              className="demo-loadmore-list"
+              loading={initLoading}
+              itemLayout="horizontal"
+              dataSource={data}
+              renderItem={(item) => (
+                <List.Item
+                  actions={[
+                    <Button
+                      key="edit"
+                      type="link"
+                      icon={<EditOutlined />}
+                      onClick={() => handleEdit(item)}
+                    >
+                      Edit
+                    </Button>,
+                    <Popconfirm
+                      key="delete"
+                      title="Are you sure to delete this flight?"
+                      onConfirm={() => handleDelete(item)}
+                      okText="Yes"
+                      cancelText="No"
+                    >
+                      <Button type="link" danger icon={<DeleteOutlined />}>
+                        Delete
+                      </Button>
+                    </Popconfirm>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    avatar={<Avatar src={item.avatar} />}
+                    title={<Link to={`/Profile`}>{item.name}</Link>}
+                    description={dayjs
+                      .utc(item.time)
+                      .tz(userTimezone)
+                      .format("YYYY-MM-DD HH:mm")}
+                  />
+                </List.Item>
+              )}
+            />
+            <div
+              style={{
+                display: "flex",
+                gap: "16px",
+                marginTop: "16px",
+                justifyContent: "center",
+              }}
+            >
+              <Button type="primary" onClick={handleAdd}>
+                Add Flight
+              </Button>
+              <Button type="primary" onClick={() => navigate("/")}>
+                Back
+              </Button>
+            </div>
+          </div>
+        </div>
         <Modal
           title={args.mode === "add" ? "Add Flight" : "Edit Flight"}
           open={"mode" in args}
@@ -98,72 +167,6 @@ export const FlightEditor = () => {
             userTimezone={userTimezone}
           />
         </Modal>
-        <div
-          style={{
-            textAlign: "center",
-            color: "#888",
-            fontSize: 14,
-            marginTop: 16,
-            marginBottom: 8,
-          }}
-        >
-          Showing times in your timezone: <b>{userTimezone}</b>
-        </div>
-        <List
-          className="demo-loadmore-list"
-          loading={initLoading}
-          itemLayout="horizontal"
-          dataSource={data}
-          renderItem={(item) => (
-            <List.Item
-              actions={[
-                <Button
-                  key="edit"
-                  type="link"
-                  icon={<EditOutlined />}
-                  onClick={() => handleEdit(item)}
-                >
-                  Edit
-                </Button>,
-                <Popconfirm
-                  key="delete"
-                  title="Are you sure to delete this flight?"
-                  onConfirm={() => handleDelete(item)}
-                  okText="Yes"
-                  cancelText="No"
-                >
-                  <Button type="link" danger icon={<DeleteOutlined />}>
-                    Delete
-                  </Button>
-                </Popconfirm>,
-              ]}
-            >
-              <List.Item.Meta
-                avatar={<Avatar src={item.avatar} />}
-                title={<Link to={`/Profile`}>{item.name}</Link>}
-                description={dayjs
-                  .utc(item.time)
-                  .tz(userTimezone)
-                  .format("YYYY-MM-DD HH:mm")}
-              />
-            </List.Item>
-          )}
-        />
-        <div
-          style={{
-            display: "flex",
-            gap: "16px",
-            marginTop: "16px",
-            justifyContent: "center",
-          }}
-        >
-          <Button type="primary" onClick={handleAdd}>
-            Add Flight
-          </Button>
-          <Button type="primary" onClick={() => navigate("/")}>
-            Back
-          </Button>
-        </div>
       </AllowUsersOnly>
     </>
   );

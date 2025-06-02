@@ -1,6 +1,6 @@
 .profile-root {
   min-height: 100vh;
-  background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+  background: #f8fafc;
   display: flex;
   flex-direction: column;
   align-items: center;

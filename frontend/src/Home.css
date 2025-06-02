@@ -61,30 +61,39 @@
 }
 
 .airplane-wrapper {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
-  height: 170px;   /* Increased height */
-  margin-bottom: 30px;
-  overflow: hidden;
-  z-index: 1;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
 }
 
-.airplane {
+.airplane, .airplane.delay {
   position: absolute;
-  left: -120px;
-  top: 25px;
-  width: 90px;
-  opacity: 0.95;
-  animation: fly-across 8s linear infinite;
-  transform: rotate(90deg);
+  top: 30%;
+  left: -300px;
+  width: 220px;
+  opacity: 0.18;
+  z-index: 0;
+  animation: flyAcross 18s linear infinite;
+  transform: rotate(90deg); /* Rotate to point rightwards */
 }
 
 .airplane.delay {
-  top: 70px;
-  opacity: 0.5;
-  filter: grayscale(0.4);
-  animation-delay: 4s;
-  transform: rotate(90deg);
+  top: 50%;
+  left: -300px;
+  animation-delay: 12s;
+}
+
+@keyframes flyAcross {
+  0% {
+    left: -300px;
+  }
+  100% {
+    left: 100vw;
+  }
 }
 
 @keyframes fly-across {
@@ -102,6 +111,11 @@
     left: 110vw;
     opacity: 0;
   }
+}
+
+.home-body, .home-body-content {
+  position: relative;
+  z-index: 1;
 }
 
 .home-body {

@@ -118,7 +118,6 @@ const Profile = () => {
     <AllowUsersOnly>
       <div className="profile-root">
         <div className="profile-card">
-          <h2 className="profile-header">Profile</h2>
           <div className="profile-field">
             <label>Name</label>
             {editMode ? (
