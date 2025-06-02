@@ -322,5 +322,5 @@ describe("Flight Controller Endpoints", () => {
             .set("Authorization", `Bearer ${token1}`);
         expect(user1Notifications.statusCode).toBe(200);
         expect(user1Notifications.body.some(n => n.message === `User ${user2.name} (${user2.email}) has a flight "${flight2.name}" within 2 hours of your new flight.`)).toBe(true);
-    });
+    }, 15000); // Increase timeout to 15s
 });

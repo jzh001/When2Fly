@@ -31,6 +31,7 @@ describe("Notification Controller Endpoints", () => {
     afterAll(async () => {
         await db.from("notifications").delete().in("google_id", [user1.userId, user2.userId]);
         await db.from("users").delete().in("google_id", [user1.userId, user2.userId]);
+        await db.from("flights").delete().in("userId", [user1.userId, user2.userId]); // Clean up flights for both users
         server.close();
     });
 
@@ -72,7 +73,7 @@ describe("Notification Controller Endpoints", () => {
         expect(user2Notifications.statusCode).toBe(200);
         expect(user2Notifications.body.length).toBeGreaterThan(0);
         expect(user2Notifications.body[0]).toEqual(expect.objectContaining({
-            message: `A new flight "${flight1.name}" was added within 2 hours of your flight by ${user1.name} (${user1.email}).`,
+            message: `A new flight "User 1 Flight" was added within 2 hours of your flight by ${user1.name} (${user1.email}).`,
             created_at: expect.any(String)
         }));
 
@@ -84,7 +85,7 @@ describe("Notification Controller Endpoints", () => {
         expect(user1Notifications.statusCode).toBe(200);
         expect(user1Notifications.body.length).toBeGreaterThan(0);
         
-        const expectedMessage = `User ${user2.name} (${user2.email}) has a flight "${flight2.name}" within 2 hours of your new flight.`;
+        const expectedMessage = `User ${user2.name} (${user2.email}) has a flight "User 2 Flight" within 2 hours of your new flight.`;
         expect(user1Notifications.body.some(notification => 
             notification.message === expectedMessage
         )).toBe(true);
