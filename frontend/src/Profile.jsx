@@ -112,7 +112,26 @@ const Profile = () => {
       </div>
     );
   }
-  if (!user) return <div>No user data found.</div>;
+
+  // User not found: Home button + redirect after 10 seconds
+  if (!user) {
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 10000);
+      return () => clearTimeout(timer);
+    }, [navigate]);
+
+    return (
+      <div className="profile-root" style={{ textAlign: "center", marginTop: 40 }}>
+        <p style={{ fontSize: 18, marginBottom: 16 }}>User not found.</p>
+        <Button type="primary" onClick={() => navigate("/")}>Go Home</Button>
+        <p style={{ marginTop: 12, color: '#888' }}>
+          You will be redirected to the home page in 10 seconds.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <AllowUsersOnly>

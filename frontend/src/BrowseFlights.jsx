@@ -6,6 +6,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { DatePicker } from "antd";
 import AllowUsersOnly from "./components/allowUsersOnly";
 import "./Home.css"; // Import Home.css for consistent styling
 dayjs.extend(utc);
@@ -16,6 +17,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const BrowseFlights = () => {
   const [flights, setFlights] = useState([]);
   const [initLoading, setInitLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(dayjs());
   const [interval, setInterval] = useState(24); // hours
   const [showMine, setShowMine] = useState(false);
   const { user } = useAuth();
@@ -26,7 +28,7 @@ const BrowseFlights = () => {
     if (!token) return;
     const fetchFlights = async () => {
       setInitLoading(true);
-      const now = new Date();
+      const now = selectedDate ? selectedDate.toDate() : new Date();
       try {
         const res = await axios.get(
           `${BACKEND_URL}/flights/allFlights?time=${encodeURIComponent(
@@ -43,7 +45,7 @@ const BrowseFlights = () => {
       }
     };
     fetchFlights();
-  }, [interval, token]);
+  }, [selectedDate, token]);
 
   // Filter out own flights if toggle is off
   const filteredFlights = flights.filter(
@@ -66,18 +68,10 @@ const BrowseFlights = () => {
               justifyContent: "center",
             }}
           >
-            <span>Show flights in next</span>
-            <Slider
-              min={1}
-              max={168}
-              value={interval}
-              onChange={setInterval}
-              marks={{ 1: "1h", 24: "1d", 72: "3d", 168: "7d" }}
-              tooltip={{
-                open: true,
-                formatter: (v) => (v >= 24 ? `${Math.round(v / 24)}d` : `${v}h`),
-              }}
-              style={{ width: 200 }}
+            <span>Show flights on: </span>
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
             />
             <span>
               {interval >= 24
