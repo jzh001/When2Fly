@@ -1,30 +1,10 @@
 import { Menu } from 'antd';
 import { HomeOutlined, EditOutlined, UserOutlined, BellOutlined, SearchOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Link, useLocation } from 'react-router-dom';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-const MenuBarWithLogout = ({ onLogout, unreadCount }) => {
+const MenuBarWithLogout = ({ onLogout }) => {
   const location = useLocation();
-  const [fetchedUnreadCount, setFetchedUnreadCount] = useState(0);
-
-  useEffect(() => {
-    const fetchUnread = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        const count = data.filter(n => !n.isRead).length;
-        setFetchedUnreadCount(count);
-      } catch (e) {
-        setFetchedUnreadCount(0);
-      }
-    };
-    fetchUnread();
-  }, []);
-
   const menuItems = [
     {
       label: <Link to="/">Home</Link>,
@@ -42,33 +22,7 @@ const MenuBarWithLogout = ({ onLogout, unreadCount }) => {
       key: 'profile',
     },
     {
-      label: (
-        <Link to="/notifications" style={{ position: 'relative', display: 'inline-block' }}>
-          Notifications
-          {typeof unreadCount === 'number' && unreadCount > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: 4,
-              right: -18,
-              minWidth: 22,
-              height: 22,
-              background: '#ef4444',
-              color: 'white',
-              borderRadius: '50%',
-              fontSize: 13,
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '0 6px',
-              zIndex: 2,
-              boxShadow: '0 1px 4px rgba(0,0,0,0.10)'
-            }}>
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </Link>
-      ),
+      label: <Link to="/notifications">Notifications</Link>,
       icon: <BellOutlined />,
       key: 'notifications',
     },

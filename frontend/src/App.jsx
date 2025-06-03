@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, Outlet, useLocation } from 'react-router-dom';
 import { FlightAdder } from './FlightAdder.jsx';
 import { FlightEditor } from './FlightEditor.jsx';
@@ -46,25 +46,6 @@ const menuItems = [
 
 const AppLayout = () => {
   const { user, loading } = useAuth();
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    const fetchUnread = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      try {
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/notifications`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        setUnreadCount(data.filter((n) => !n.isRead).length);
-      } catch {
-        setUnreadCount(0);
-      }
-    };
-    if (user) fetchUnread();
-  }, [user]);
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     window.location.reload();
@@ -90,12 +71,12 @@ const AppLayout = () => {
           {!loading && !user && <LoginButton />}
           {user && (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, marginBottom: 0, width: '100%' }}>
-              <MenuBar onLogout={handleLogout} unreadCount={unreadCount} />
+              <MenuBar onLogout={handleLogout} />
             </div>
           )}
         </Header>
         <Content style={{ 'backgroundColor': "#e6f0fa"}}>
-          <Outlet context={{ setUnreadCount }} />
+          <Outlet />
         </Content>
       </Layout>
     </ConfigProvider>

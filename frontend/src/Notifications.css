@@ -51,9 +51,8 @@
 }
 
 .notifications-button {
-  margin-top: 10px;
-  margin-left: 10px;
-  padding: 10px 15px;
+  margin-top: 28px;
+  padding: 10px 22px;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
@@ -63,4 +62,8 @@
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
   box-shadow: 0 2px 8px rgba(30,41,59,0.07);
+}
+
+.notifications-button:hover {
+  background: #1d4ed8;
 }

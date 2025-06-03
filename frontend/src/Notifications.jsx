@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./Notifications.css";
 import AllowUsersOnly from "./components/allowUsersOnly";
 
@@ -11,7 +11,6 @@ const Notifications = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
-  const { setUnreadCount } = useOutletContext();
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -20,16 +19,14 @@ const Notifications = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotifications(data);
-        setUnreadCount(data.filter((n) => !n.isRead).length);
       } catch {
         alert("Failed to load notifications.");
-        setUnreadCount(0);
       } finally {
         setLoading(false);
       }
     };
     fetchNotifications();
-  }, [token, setUnreadCount]);
+  }, [token]);
 
   const renderMessage = (message, parentKey) => {
     // Regex to match UCLA email addresses
@@ -63,13 +60,11 @@ const Notifications = () => {
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setNotifications((prev) => {
-        const updated = prev.map((n) =>
+      setNotifications((prev) =>
+        prev.map((n) =>
           n.id === notifId ? { ...n, isRead: !n.isRead } : n
-        );
-        setUnreadCount(updated.filter((n) => !n.isRead).length);
-        return updated;
-      });
+        )
+      );
     } catch {
       alert("Failed to update notification status.");
     }
@@ -91,7 +86,13 @@ const Notifications = () => {
                 <button
                   className="notifications-button"
                   style={{
+                    marginLeft: 16,
                     background: notif.isRead ? "#f59e42" : "#2563eb",
+                    color: "white",
+                    border: "none",
+                    borderRadius: 4,
+                    padding: "2px 10px",
+                    cursor: "pointer",
                   }}
                   onClick={() => toggleIsRead(notif.id)}
                 >
