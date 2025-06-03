@@ -30,11 +30,12 @@ const BrowseFlights = () => {
     if (!token) return;
     const fetchFlights = async () => {
       setInitLoading(true);
-      const now = selectedDate ? selectedDate.toDate() : new Date();
+      const userTz = user?.timezone || "UTC";
+      const chosenDay = selectedDate.tz(userTz).startOf("day").utc();
       try {
         const res = await axios.get(
           `${BACKEND_URL}/flights/allFlights?time=${encodeURIComponent(
-            now.toISOString()
+            chosenDay.toISOString()
           )}&interval=24`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -47,7 +48,7 @@ const BrowseFlights = () => {
       }
     };
     fetchFlights();
-  }, [selectedDate, token]);
+  }, [selectedDate, token, user]);
 
   useEffect(() => {
     if (flights.length === 0) return;
