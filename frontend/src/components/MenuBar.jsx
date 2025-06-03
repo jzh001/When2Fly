@@ -3,7 +3,7 @@ import { HomeOutlined, EditOutlined, UserOutlined, BellOutlined, SearchOutlined,
 import { Link, useLocation } from 'react-router-dom';
 import React from 'react';
 
-const MenuBarWithLogout = ({ onLogout }) => {
+const MenuBarWithLogout = ({ onLogout, unreadCount }) => {
   const location = useLocation();
   const menuItems = [
     {
@@ -22,7 +22,33 @@ const MenuBarWithLogout = ({ onLogout }) => {
       key: 'profile',
     },
     {
-      label: <Link to="/notifications">Notifications</Link>,
+      label: (
+        <Link to="/notifications" style={{ position: 'relative', display: 'inline-block' }}>
+          Notifications
+          {typeof unreadCount === 'number' && unreadCount > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: 4,
+              right: -18,
+              minWidth: 22,
+              height: 22,
+              background: '#ef4444',
+              color: 'white',
+              borderRadius: '50%',
+              fontSize: 13,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 6px',
+              zIndex: 2,
+              boxShadow: '0 1px 4px rgba(0,0,0,0.10)'
+            }}>
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </Link>
+      ),
       icon: <BellOutlined />,
       key: 'notifications',
     },
