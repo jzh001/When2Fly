@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Avatar, Button, List, Skeleton, Switch, Slider, message } from "antd";
+import { Avatar, Button, List, Skeleton, Switch, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import axios from "axios";
@@ -20,7 +20,6 @@ const BrowseFlights = () => {
   const [flights, setFlights] = useState([]);
   const [initLoading, setInitLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [interval, setInterval] = useState(24); // hours
   const [showMine, setShowMine] = useState(false);
   const [identiconMap, setIdenticonMap] = useState({});
   const { user } = useAuth();
@@ -36,7 +35,7 @@ const BrowseFlights = () => {
         const res = await axios.get(
           `${BACKEND_URL}/flights/allFlights?time=${encodeURIComponent(
             now.toISOString()
-          )}&interval=${interval}`,
+          )}&interval=24`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setFlights(res.data || []);
@@ -117,11 +116,6 @@ const BrowseFlights = () => {
               value={selectedDate}
               onChange={setSelectedDate}
             />
-            <span>
-              {interval >= 24
-                ? `${Math.round(interval / 24)} day(s)`
-                : `${interval} hour(s)`}
-            </span>
             <Switch
               checked={showMine}
               onChange={setShowMine}
