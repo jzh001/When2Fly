@@ -9,6 +9,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { FlightAdder } from "./FlightAdder.jsx";
 import axios from "axios";
 import AllowUsersOnly from "./components/allowUsersOnly.jsx";
+import { generateBitPattern, BitIdenticon } from "./Identicon";
 import "./Home.css"; // Import Home.css for consistent styling
 
 dayjs.extend(utc);
@@ -23,6 +24,7 @@ export const FlightEditor = () => {
   const token = localStorage.getItem("token");
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const { user } = useAuth();
+  const [identiconMap, setIdenticonMap] = useState({});
 
   const userTimezone = user?.timezone || "UTC";
 
@@ -42,6 +44,22 @@ export const FlightEditor = () => {
       setData(results);
     })();
   }, [user]);
+
+  useEffect(() => {
+    if (data.length === 0) return;
+
+    setIdenticonMap((prevMap) => {
+      const newMap = { ...prevMap };
+      let changed = false;
+      data.forEach((flight) => {
+        if (!newMap[flight.id]) {
+          newMap[flight.id] = generateBitPattern(flight.id.toString());
+          changed = true;
+        }
+      });
+      return changed ? newMap : prevMap;
+    });
+  }, [data]);
 
   const handleDelete = async (deleted) => {
     try {
@@ -77,27 +95,47 @@ export const FlightEditor = () => {
       time: dayjs(flightDateTime.format("HH:mm:ss"), "HH:mm:ss"),
     });
   };
+
   return (
-    <>      <AllowUsersOnly>
-        <div className="home-root" style={{ background: '#f8fafc', minHeight: '100vh', padding: '40px 16px' }}>
-          <div className="home-body" style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '700px', background: '#fff', borderRadius: '14px', boxShadow: '0 4px 24px rgba(30,41,59,0.09)', padding: '36px 32px', marginBottom: '40px' }}>
-            <div
-              style={{
-                textAlign: "center",
-                color: "#888",
-                fontSize: 14,
-                marginTop: 16,
-                marginBottom: 8,
-              }}
-            >
-              Showing times in your timezone: <b>{userTimezone}</b>
-            </div>
-            <List
-              className="demo-loadmore-list"
-              loading={initLoading}
-              itemLayout="horizontal"
-              dataSource={data}
-              renderItem={(item) => (
+    <AllowUsersOnly>
+      <div
+        className="home-root"
+        style={{ background: "#f8fafc", minHeight: "100vh", padding: "40px 16px" }}
+      >
+        <div
+          className="home-body"
+          style={{
+            position: "relative",
+            zIndex: 2,
+            width: "100%",
+            maxWidth: "700px",
+            background: "#fff",
+            borderRadius: "14px",
+            boxShadow: "0 4px 24px rgba(30,41,59,0.09)",
+            padding: "36px 32px",
+            marginBottom: "40px",
+          }}
+        >
+          <div
+            style={{
+              textAlign: "center",
+              color: "#888",
+              fontSize: 14,
+              marginTop: 16,
+              marginBottom: 8,
+            }}
+          >
+            Showing times in your timezone: <b>{userTimezone}</b>
+          </div>
+          <List
+            className="demo-loadmore-list"
+            loading={initLoading}
+            itemLayout="horizontal"
+            dataSource={data}
+            renderItem={(item) => {
+              const pattern = identiconMap[item.id] || generateBitPattern(item.id.toString());
+
+              return (
                 <List.Item
                   actions={[
                     <Button
@@ -122,7 +160,13 @@ export const FlightEditor = () => {
                   ]}
                 >
                   <List.Item.Meta
-                    avatar={<Avatar src={item.avatar} />}
+                    avatar={
+                      <Avatar
+                        size={40}
+                        style={{ backgroundColor: "transparent" }}
+                        src={<BitIdenticon size={40} pattern={pattern} />}
+                      />
+                    }
                     title={<Link to={`/Profile`}>{item.name}</Link>}
                     description={dayjs
                       .utc(item.time)
@@ -130,44 +174,44 @@ export const FlightEditor = () => {
                       .format("YYYY-MM-DD HH:mm")}
                   />
                 </List.Item>
-              )}
-            />
-            <div
-              style={{
-                display: "flex",
-                gap: "16px",
-                marginTop: "16px",
-                justifyContent: "center",
-              }}
-            >
-              <Button type="primary" onClick={handleAdd}>
-                Add Flight
-              </Button>
-              <Button type="primary" onClick={() => navigate("/")}>
-                Back
-              </Button>
-            </div>
+              );
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              gap: "16px",
+              marginTop: "16px",
+              justifyContent: "center",
+            }}
+          >
+            <Button type="primary" onClick={handleAdd}>
+              Add Flight
+            </Button>
+            <Button type="primary" onClick={() => navigate("/")}>
+              Back
+            </Button>
           </div>
         </div>
-        <Modal
-          title={args.mode === "add" ? "Add Flight" : "Edit Flight"}
-          open={"mode" in args}
-          footer={null}
-          width={800}
-          destroyOnHidden
-          onCancel={() => setArgs({})}
-        >
-          <FlightAdder
-            mode={args.mode}
-            id={args.id}
-            handleSubmit={() => setArgs({})}
-            data={data}
-            setData={setData}
-            form={form}
-            userTimezone={userTimezone}
-          />
-        </Modal>
-      </AllowUsersOnly>
-    </>
+      </div>
+      <Modal
+        title={args.mode === "add" ? "Add Flight" : "Edit Flight"}
+        open={"mode" in args}
+        footer={null}
+        width={800}
+        destroyOnHidden
+        onCancel={() => setArgs({})}
+      >
+        <FlightAdder
+          mode={args.mode}
+          id={args.id}
+          handleSubmit={() => setArgs({})}
+          data={data}
+          setData={setData}
+          form={form}
+          userTimezone={userTimezone}
+        />
+      </Modal>
+    </AllowUsersOnly>
   );
 };

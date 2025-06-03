@@ -8,7 +8,9 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { DatePicker } from "antd";
 import AllowUsersOnly from "./components/allowUsersOnly";
+import { generateBitPattern, BitIdenticon } from "./Identicon.jsx";
 import "./Home.css"; // Import Home.css for consistent styling
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -20,6 +22,7 @@ const BrowseFlights = () => {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [interval, setInterval] = useState(24); // hours
   const [showMine, setShowMine] = useState(false);
+  const [identiconMap, setIdenticonMap] = useState({});
   const { user } = useAuth();
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -47,18 +50,59 @@ const BrowseFlights = () => {
     fetchFlights();
   }, [selectedDate, token]);
 
-  // Filter out own flights if toggle is off
+  useEffect(() => {
+    if (flights.length === 0) return;
+
+    setIdenticonMap((prevMap) => {
+      const newMap = { ...prevMap };
+      let changed = false;
+      flights.forEach((flight) => {
+        if (!newMap[flight.id]) {
+          newMap[flight.id] = generateBitPattern(flight.id.toString());
+          changed = true;
+        }
+      });
+      return changed ? newMap : prevMap;
+    });
+  }, [flights]);
+
   const filteredFlights = flights.filter(
     (f) => showMine || !user || String(f.userId) !== String(user.google_id)
   );
 
-  // console.log("user from useAuth:", user);
   const userTimezone = user?.timezone || "UTC";
+
   return (
     <AllowUsersOnly>
-      <div className="home-root" style={{ background: '#f8fafc', minHeight: '100vh', padding: '40px 16px' }}>
-        <div className="home-body" style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: '700px', background: '#fff', borderRadius: '14px', boxShadow: '0 4px 24px rgba(30,41,59,0.09)', padding: '36px 32px', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#1e293b', marginBottom: '24px', textAlign: 'center' }}>Browse All Flights</h2>
+      <div
+        className="home-root"
+        style={{ background: "#f8fafc", minHeight: "100vh", padding: "40px 16px" }}
+      >
+        <div
+          className="home-body"
+          style={{
+            position: "relative",
+            zIndex: 2,
+            width: "100%",
+            maxWidth: "700px",
+            background: "#fff",
+            borderRadius: "14px",
+            boxShadow: "0 4px 24px rgba(30,41,59,0.09)",
+            padding: "36px 32px",
+            marginBottom: "40px",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "2.2rem",
+              fontWeight: 700,
+              color: "#1e293b",
+              marginBottom: "24px",
+              textAlign: "center",
+            }}
+          >
+            Browse All Flights
+          </h2>
           <div
             style={{
               margin: "24px 0",
@@ -100,46 +144,56 @@ const BrowseFlights = () => {
             loading={initLoading}
             itemLayout="horizontal"
             dataSource={filteredFlights}
-            renderItem={(item) => (
-              <List.Item>
-                <List.Item.Meta
-                  avatar={<Avatar src={item.avatar} />}
-                  title={
-                    <>
-                      <span>{item.name}</span>
-                      <span style={{ color: "#888", marginLeft: 8 }}>
-                        {item.users?.name ? `by ${item.users.name}` : ""}
-                      </span>
-                    </>
-                  }
-                  description={
-                    <>
-                      Time:{" "}
-                      {dayjs
-                        .utc(item.time)
-                        .tz(userTimezone)
-                        .format("YYYY-MM-DD HH:mm")}
-                      <br />
-                      {item.users?.email && (
-                        <span style={{ color: "#888" }}>
-                          Author Email:{" "}
-                          <a
-                            href={`mailto:${item.users.email}`}
-                            style={{
-                              color: "#1677ff",
-                              textDecoration: "underline",
-                            }}
-                          >
-                            {item.users.email}
-                          </a>
+            renderItem={(item) => {
+              const pattern = identiconMap[item.id] || generateBitPattern(item.id.toString());
+
+              return (
+                <List.Item>
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar
+                        size={40}
+                        style={{ backgroundColor: "transparent" }}
+                        src={<BitIdenticon size={40} pattern={pattern} />}
+                      />
+                    }
+                    title={
+                      <>
+                        <span>{item.name}</span>
+                        <span style={{ color: "#888", marginLeft: 8 }}>
+                          {item.users?.name ? `by ${item.users.name}` : ""}
                         </span>
-                      )}
-                    </>
-                  }
-                />
-                <div>Enjoy your flight!</div>
-              </List.Item>
-            )}
+                      </>
+                    }
+                    description={
+                      <>
+                        Time:{" "}
+                        {dayjs
+                          .utc(item.time)
+                          .tz(userTimezone)
+                          .format("YYYY-MM-DD HH:mm")}
+                        <br />
+                        {item.users?.email && (
+                          <span style={{ color: "#888" }}>
+                            Author Email:{" "}
+                            <a
+                              href={`mailto:${item.users.email}`}
+                              style={{
+                                color: "#1677ff",
+                                textDecoration: "underline",
+                              }}
+                            >
+                              {item.users.email}
+                            </a>
+                          </span>
+                        )}
+                      </>
+                    }
+                  />
+                  <div>Enjoy your flight!</div>
+                </List.Item>
+              );
+            }}
             locale={{ emptyText: "No flights found in this window." }}
           />
           <div
