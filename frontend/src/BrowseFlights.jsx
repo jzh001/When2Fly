@@ -27,7 +27,7 @@ const BrowseFlights = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !selectedDate) return; // Prevent fetch if no date
     const fetchFlights = async () => {
       setInitLoading(true);
       const userTz = user?.timezone || "UTC";
@@ -134,63 +134,69 @@ const BrowseFlights = () => {
           >
             Showing times in your timezone: <b>{userTimezone}</b>
           </div>
-          <List
-            className="demo-loadmore-list"
-            loading={initLoading}
-            itemLayout="horizontal"
-            dataSource={filteredFlights}
-            renderItem={(item) => {
-              const pattern = identiconMap[item.id] || generateBitPattern(item.id.toString());
+          {!selectedDate ? (
+            <div style={{ color: "#888", fontSize: 15, marginTop: 20 }}>
+              Please pick a date
+            </div>
+          ) : (
+            <List
+              className="demo-loadmore-list"
+              loading={initLoading}
+              itemLayout="horizontal"
+              dataSource={filteredFlights}
+              renderItem={(item) => {
+                const pattern = identiconMap[item.id] || generateBitPattern(item.id.toString());
 
-              return (
-                <List.Item>
-                  <List.Item.Meta
-                    avatar={
-                      <Avatar
-                        size={40}
-                        style={{ backgroundColor: "transparent" }}
-                        src={<BitIdenticon size={40} pattern={pattern} />}
-                      />
-                    }
-                    title={
-                      <>
-                        <span>{item.name}</span>
-                        <span style={{ color: "#888", marginLeft: 8 }}>
-                          {item.users?.name ? `by ${item.users.name}` : ""}
-                        </span>
-                      </>
-                    }
-                    description={
-                      <>
-                        Time:{" "}
-                        {dayjs
-                          .utc(item.time)
-                          .tz(userTimezone)
-                          .format("YYYY-MM-DD HH:mm")}
-                        <br />
-                        {item.users?.email && (
-                          <span style={{ color: "#888" }}>
-                            Author Email:{" "}
-                            <a
-                              href={`mailto:${item.users.email}`}
-                              style={{
-                                color: "#1677ff",
-                                textDecoration: "underline",
-                              }}
-                            >
-                              {item.users.email}
-                            </a>
+                return (
+                  <List.Item>
+                    <List.Item.Meta
+                      avatar={
+                        <Avatar
+                          size={40}
+                          style={{ backgroundColor: "transparent" }}
+                          src={<BitIdenticon size={40} pattern={pattern} />}
+                        />
+                      }
+                      title={
+                        <>
+                          <span>{item.name}</span>
+                          <span style={{ color: "#888", marginLeft: 8 }}>
+                            {item.users?.name ? `by ${item.users.name}` : ""}
                           </span>
-                        )}
-                      </>
-                    }
-                  />
-                  <div>Enjoy your flight!</div>
-                </List.Item>
-              );
-            }}
-            locale={{ emptyText: "No flights found in this window." }}
-          />
+                        </>
+                      }
+                      description={
+                        <>
+                          Time:{" "}
+                          {dayjs
+                            .utc(item.time)
+                            .tz(userTimezone)
+                            .format("YYYY-MM-DD HH:mm")}
+                          <br />
+                          {item.users?.email && (
+                            <span style={{ color: "#888" }}>
+                              Author Email:{" "}
+                              <a
+                                href={`mailto:${item.users.email}`}
+                                style={{
+                                  color: "#1677ff",
+                                  textDecoration: "underline",
+                                }}
+                              >
+                                {item.users.email}
+                              </a>
+                            </span>
+                          )}
+                        </>
+                      }
+                    />
+                    <div>Enjoy your flight!</div>
+                  </List.Item>
+                );
+              }}
+              locale={{ emptyText: "No flights found in this window." }}
+            />
+          )}
           <div
             style={{
               display: "flex",
