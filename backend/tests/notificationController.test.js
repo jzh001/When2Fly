@@ -149,12 +149,14 @@ describe("Notification Controller Endpoints", () => {
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty("message", "Notification marked as read");
 
-        // Confirm it no longer appears in unread notifications
+        // Confirm it is now marked as read
         const unreadRes = await request(app)
             .get("/notifications")
             .set("Authorization", `Bearer ${token1}`);
 
-        expect(unreadRes.body.find(n => n.id === notifId)).toBeUndefined();
+        const updatedNotif = unreadRes.body.find(n => n.id === notifId);
+        expect(updatedNotif).toBeDefined();
+        expect(updatedNotif.isRead).toBe(true);
     });
 
     it("should return 401 if no token is provided", async () => {
