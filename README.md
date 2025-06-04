@@ -57,7 +57,7 @@ Replace the values as needed for your environment.
     ```bash
     ./start-all.sh
     ```
-   This will start both the backend and frontend servers.
+   This will start both the backend and frontend servers. If you encounter any errors, perform `npm install` in the frontend and backend folders, and try the shell command from the root folder again.
 
 2. **Access the Web Application:**
    - Open your browser and go to [http://localhost:5173](http://localhost:5173).
