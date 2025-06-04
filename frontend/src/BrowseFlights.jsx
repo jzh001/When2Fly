@@ -9,7 +9,7 @@ import timezone from "dayjs/plugin/timezone";
 import { DatePicker } from "antd";
 import AllowUsersOnly from "./components/allowUsersOnly";
 import { generateBitPattern, BitIdenticon } from "./Identicon.jsx";
-import "./Home.css"; // Import Home.css for consistent styling
+import "./Home.css";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -76,7 +76,11 @@ const BrowseFlights = () => {
     <AllowUsersOnly>
       <div
         className="home-root"
-        style={{ background: "#f8fafc", minHeight: "100vh", padding: "40px 16px" }}
+        style={{
+          background: "#f8fafc",
+          minHeight: "100vh",
+          padding: "40px 16px",
+        }}
       >
         <div
           className="home-body"
@@ -113,10 +117,7 @@ const BrowseFlights = () => {
             }}
           >
             <span>Show flights on: </span>
-            <DatePicker
-              value={selectedDate}
-              onChange={setSelectedDate}
-            />
+            <DatePicker value={selectedDate} onChange={setSelectedDate} />
             <Switch
               checked={showMine}
               onChange={setShowMine}
@@ -145,7 +146,9 @@ const BrowseFlights = () => {
               itemLayout="horizontal"
               dataSource={filteredFlights}
               renderItem={(item) => {
-                const pattern = identiconMap[item.id] || generateBitPattern(item.id.toString());
+                const pattern =
+                  identiconMap[item.id] ||
+                  generateBitPattern(item.id.toString());
 
                 return (
                   <List.Item>

@@ -1,7 +1,6 @@
-// src/components/ProtectedRoute.jsx
 import { useAuth } from "../hooks/useAuth";
 import { Navigate } from "react-router-dom";
-import { message } from 'antd';
+import { message } from "antd";
 import { useEffect, useRef } from "react";
 
 export default function AllowUsersOnly({ children }) {
@@ -11,22 +10,28 @@ export default function AllowUsersOnly({ children }) {
 
   useEffect(() => {
     if (!loading && !user && !hasShownLoginMessage.current) {
-      messageApi.error('You must be logged in to access this page');
+      messageApi.error("You must be logged in to access this page");
       hasShownLoginMessage.current = true;
-      setTimeout(() => { hasShownLoginMessage.current = false; }, 1000);
+      setTimeout(() => {
+        hasShownLoginMessage.current = false;
+      }, 1000);
     }
   }, [user, loading, messageApi]);
 
   if (loading) return <p>Loading...</p>;
   if (!user) {
-    return <>
-      {contextHolder}
-      <Navigate to={'/'} replace />
-    </>;
+    return (
+      <>
+        {contextHolder}
+        <Navigate to={"/"} replace />
+      </>
+    );
   }
 
-  return <>
-    {contextHolder}
-    {children}
-  </>;
+  return (
+    <>
+      {contextHolder}
+      {children}
+    </>
+  );
 }

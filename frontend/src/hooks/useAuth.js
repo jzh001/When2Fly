@@ -1,7 +1,6 @@
-// src/hooks/useAuth.js
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { useLocation } from 'react-router-dom';
+import { useLocation } from "react-router-dom";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
