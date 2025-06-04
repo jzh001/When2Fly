@@ -70,8 +70,7 @@ const getAllFlightsInTimeRange = async (req, res) => {
 
   try {
     const queryTime = new Date(time);
-    const now = new Date(Date.now());
-    const minTime = now.toISOString();
+    const minTime = queryTime.toISOString();
     const maxTime = new Date(queryTime.getTime() + interval * 60 * 60 * 1000).toISOString();
 
     const { data, error } = await db

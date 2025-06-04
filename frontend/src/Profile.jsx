@@ -21,14 +21,32 @@ dayjs.extend(timezone);
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const timezones = [
-  "UTC",
+  "Pacific/Midway",
+  "US/Hawaii",
+  "US/Alaska",
   "America/Los_Angeles",
+  "America/Denver",
+  "America/Chicago",
   "America/New_York",
+  "Atlantic/Bermuda",
+  "America/Miquelon",
+  "America/Nuuk",
+  "Atlantic/Azores",
+  "UTC",
   "Europe/London",
   "Europe/Paris",
+  "Europe/Athens",
+  "Africa/Nairobi",
+  "Asia/Dubai",
+  "Asia/Karachi",
+  "Asia/Kolkata",
+  "Asia/Dhaka",
+  "Asia/Bangkok",	
   "Asia/Shanghai",
   "Asia/Tokyo",
   "Australia/Sydney",
+  "Pacific/Norfolk",
+  "Pacific/Auckland",
 ];
 
 const Profile = () => {
@@ -112,7 +130,26 @@ const Profile = () => {
       </div>
     );
   }
-  if (!user) return <div>No user data found.</div>;
+
+  // User not found: Home button + redirect after 10 seconds
+  if (!user) {
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 10000);
+      return () => clearTimeout(timer);
+    }, [navigate]);
+
+    return (
+      <div className="profile-root" style={{ textAlign: "center", marginTop: 40 }}>
+        <p style={{ fontSize: 18, marginBottom: 16 }}>User not found.</p>
+        <Button type="primary" onClick={() => navigate("/")}>Go Home</Button>
+        <p style={{ marginTop: 12, color: '#888' }}>
+          You will be redirected to the home page in 10 seconds.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <AllowUsersOnly>
@@ -177,7 +214,14 @@ const Profile = () => {
                   value={timezoneValue}
                   onChange={setTimezoneValue}
                   style={{ flex: 1 }}
-                  options={timezones.map((tz) => ({ value: tz, label: tz }))}
+                  options={timezones.map((tz) => {
+                    const offset = dayjs().tz(tz).utcOffset() / 60;
+                    const sign = offset >= 0 ? "+" : "";
+                    return {
+                      value: tz,
+                      label: `${tz} (UTC${sign}${offset})`
+                    };
+                  })}
                   optionFilterProp="label"
                 />
                 <Button

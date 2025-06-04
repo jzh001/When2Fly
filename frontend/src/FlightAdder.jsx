@@ -109,7 +109,7 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form, userT
                 label="Time"
                 rules={[{ type: 'object', required: true, message: 'Please select a time!' }]}
             >
-                <TimePicker />
+                <TimePicker format="HH:mm" />
             </Form.Item>
             <Form.Item
                 wrapperCol={{ span: 24 }}
