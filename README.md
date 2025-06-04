@@ -1,9 +1,9 @@
-## When2Fly
+# When2Fly
 Full Stack Web Development Final Project for CS 35L Software Construction
 
 This application helps Bruins coordinate rideshares by notifying them of other Bruins' flights at similar times, making it easier to split the cost of transportation from the airport.
 
-### Key Features
+## Key Features
 
 - **Flight Management:** Add, edit, or delete your flights.
 - **Proximity Notifications:** Get notified when other users have flights within 2 hours of yours.
@@ -11,7 +11,7 @@ This application helps Bruins coordinate rideshares by notifying them of other B
 - **Profile Management:** Edit your name and time zone.
 - **Communication:** Contact other users via email to arrange rideshares.
 
-### Access and Security
+## Access and Security
 
 - Only users with g.ucla.edu email addresses can sign up, verified through Google authentication.
 - All notifications and user IDs are securely stored in a Supabase database.
@@ -19,7 +19,37 @@ This application helps Bruins coordinate rideshares by notifying them of other B
 
 ---
 
-# Setup Instructions
+## Setup Instructions
+
+### Environment Variable Setup
+
+Before running the backend or frontend, you must create the required `.env` files in each directory. Example contents are provided below:
+
+### Backend (`backend/.env`)
+Create a file named `.env` in the `backend/` directory with the following variables:
+
+```
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+PORT=3000
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:5173/callback
+JWT_SECRET=your_jwt_secret
+```
+
+Replace the values with your actual credentials. Do not share these values publicly.
+
+### Frontend (`frontend/.env`)
+Create a file named `.env` in the `frontend/` directory with the following variables:
+
+```
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GOOGLE_REDIRECT_URI=http://localhost:5173/callback
+VITE_BACKEND_URL=http://localhost:3000
+```
+
+Replace the values as needed for your environment.
 
 ## Quick Start: Running Both Backend and Frontend
 
@@ -85,37 +115,5 @@ This application helps Bruins coordinate rideshares by notifying them of other B
    - Open [http://localhost:5173](http://localhost:5173) in your browser.
    - Log in with your g.ucla.edu email.
    - Use the dashboard to manage flights, browse matches, and coordinate rideshares.
-
----
-
-## Environment Variable Setup
-
-Before running the backend or frontend, you must create the required `.env` files in each directory. Example contents are provided below:
-
-### Backend (`backend/.env`)
-Create a file named `.env` in the `backend/` directory with the following variables:
-
-```
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-PORT=3000
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=http://localhost:5173/callback
-JWT_SECRET=your_jwt_secret
-```
-
-Replace the values with your actual credentials. Do not share these values publicly.
-
-### Frontend (`frontend/.env`)
-Create a file named `.env` in the `frontend/` directory with the following variables:
-
-```
-VITE_GOOGLE_CLIENT_ID=your_google_client_id
-VITE_GOOGLE_REDIRECT_URI=http://localhost:5173/callback
-VITE_BACKEND_URL=http://localhost:3000
-```
-
-Replace the values as needed for your environment.
 
 ---
