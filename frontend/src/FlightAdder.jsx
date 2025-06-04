@@ -90,8 +90,8 @@ export const FlightAdder = ({ mode, id, handleSubmit, data, setData, form, userT
             </div>
             <Form.Item
                 name="name"
-                label="Name"
-                rules={[{ required: true, message: 'Please enter your name!' }]}
+                label="Airline"
+                rules={[{ required: true, message: 'Please enter your airline!' }]}
             >
                 <Input />
             </Form.Item>
